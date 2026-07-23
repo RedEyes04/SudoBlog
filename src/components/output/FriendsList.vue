@@ -7,44 +7,52 @@ defineProps<{
 </script>
 
 <template>
-  <div class="friends-list">
-    <div class="header">
-      <span class="header-icon">&#128279;</span>
-      友链 <span class="count">（共 {{ friends.length }} 个）</span>
-    </div>
-    <div class="grid">
-      <a
-        v-for="friend in friends"
-        :key="friend.url"
-        :href="friend.url"
-        target="_blank"
-        rel="noopener"
-        class="friend-card"
-      >
-        <img v-if="friend.thumbnail" :src="friend.thumbnail" :alt="friend.name" class="thumbnail" />
-        <div class="card-body">
-          <div class="card-header">
-            <img :src="friend.avatar" :alt="friend.name" class="card-avatar" />
-            <h3 class="card-name">{{ friend.name }}</h3>
+  <div class="friends-page">
+    <div class="friends-content">
+      <div class="header">
+        <span class="header-icon">&#128279;</span>
+        友链 <span class="count">（共 {{ friends.length }} 个）</span>
+      </div>
+      <div class="grid">
+        <a
+          v-for="friend in friends"
+          :key="friend.url"
+          :href="friend.url"
+          target="_blank"
+          rel="noopener"
+          class="friend-card"
+        >
+          <img v-if="friend.thumbnail" :src="friend.thumbnail" :alt="friend.name" class="thumbnail" />
+          <div class="card-body">
+            <div class="card-header">
+              <img :src="friend.avatar" :alt="friend.name" class="card-avatar" />
+              <h3 class="card-name">{{ friend.name }}</h3>
+            </div>
+            <p class="card-desc">{{ friend.description }}</p>
           </div>
-          <p class="card-desc">{{ friend.description }}</p>
-        </div>
-        <span class="visit-hint">访问 &rarr;</span>
-      </a>
+          <span class="visit-hint">访问 &rarr;</span>
+        </a>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.friends-list {
-  margin-bottom: 1rem;
+.friends-page {
+  height: 100%;
+  padding: 2rem;
+}
+
+.friends-content {
+  padding-bottom: 1rem;
 }
 
 .header {
   color: var(--green);
   font-weight: bold;
-  margin-bottom: 0.75rem;
-  font-size: 1.05em;
+  margin-bottom: 1.5rem;
+  font-size: 1.2em;
+  text-align: center;
 }
 
 .header-icon {
@@ -59,8 +67,10 @@ defineProps<{
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .friend-card {
@@ -82,47 +92,47 @@ defineProps<{
 
 .thumbnail {
   width: 100%;
-  height: 100px;
+  height: 120px;
   object-fit: cover;
 }
 
 .card-body {
-  padding: 0.6em 0.8em;
+  padding: 0.8em 1em;
   flex: 1;
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  margin-bottom: 0.4em;
+  gap: 0.6em;
+  margin-bottom: 0.5em;
 }
 
 .card-avatar {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .card-name {
   color: var(--yellow);
-  font-size: 0.95em;
+  font-size: 1em;
   font-weight: 600;
 }
 
 .card-desc {
   color: var(--gray);
-  font-size: 0.85em;
+  font-size: 0.9em;
   line-height: 1.5;
 }
 
 .visit-hint {
   display: block;
   text-align: right;
-  padding: 0 0.8em 0.6em;
+  padding: 0 1em 0.8em;
   color: var(--blue);
-  font-size: 0.8em;
+  font-size: 0.85em;
 }
 
 .friend-card:hover .visit-hint {

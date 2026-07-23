@@ -7,26 +7,34 @@ defineProps<{
 </script>
 
 <template>
-  <div class="about-view">
-    <div class="avatar-container">
-      <img :src="about.avatar" :alt="about.name" class="avatar" />
-    </div>
-    <h2 class="name">{{ about.name }}</h2>
-    <div class="bio">
-      <p v-for="(line, i) in about.bio.split('\n').filter(Boolean)" :key="i">
-        {{ line }}
-      </p>
+  <div class="about-page">
+    <div class="about-content">
+      <div class="avatar-container">
+        <img :src="about.avatar" :alt="about.name" class="avatar" />
+      </div>
+      <h2 class="name">{{ about.name }}</h2>
+      <div class="bio">
+        <p v-for="(line, i) in about.bio.split('\n').filter(Boolean)" :key="i">
+          {{ line }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.about-view {
+.about-page {
+  height: 100%;
+  padding: 2rem;
+}
+
+.about-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1rem;
-  padding: 1.5em 0;
+  justify-content: center;
+  padding-bottom: 2rem;
+  min-height: 100%;
 }
 
 .avatar-container {
@@ -34,8 +42,8 @@ defineProps<{
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   border: 3px solid var(--green);
   object-fit: cover;
@@ -43,7 +51,7 @@ defineProps<{
 
 .name {
   color: var(--yellow);
-  font-size: 1.2em;
+  font-size: 1.3em;
   margin-bottom: 1rem;
 }
 

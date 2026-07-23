@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { HistoryEntry, TerminalMode, Post } from '../types'
 import { posts as postsData } from '../data/posts'
 import { friends as friendsData } from '../data/friends'
@@ -12,19 +12,72 @@ export function useTerminal() {
   const historyIndex = ref(-1)
   const postListSelectedIndex = ref(0)
   const currentPostId = ref<number | null>(null)
-  const tabHints = ref<string[]>([]) // tab completion hints
+  const tabHints = ref<string[]>([])
   let nextEntryId = 1
 
-  // ── Derived ─────────────────────────────────────────────────────
-  const terminalMode = computed<TerminalMode>(() => {
-    if (history.value.length === 0) return 'home'
-    const last = history.value[history.value.length - 1]
-    if (!last || last.type !== 'component') return 'home'
-    const name = last.component?.name
-    if (name === 'PostsList') return 'posts-list'
-    if (name === 'PostDetail') return 'post-detail'
-    return 'home'
-  })
+  // ── Explicit mode (NOT derived from history — non-navigation commands don't change it)
+  const terminalMode = ref<TerminalMode>('home')
+
+  // ── URL Hash Sync ─────────────────────────────────────────────────
+  function syncHash() {
+    let hash = ''
+    switch (terminalMode.value) {
+      case 'post-detail':
+        if (currentPostId.value !== null) hash = `#/posts/${currentPostId.value}`
+        break
+      case 'posts-list':
+        hash = '#/posts'
+        break
+      case 'about':
+        hash = '#/about'
+        break
+      case 'friends':
+        hash = '#/friends'
+        break
+      default:
+        break
+    }
+    window.history.replaceState(null, '', hash || window.location.pathname)
+  }
+
+  watch([terminalMode, currentPostId], () => syncHash())
+
+  function restoreFromHash(): boolean {
+    const hash = window.location.hash
+
+    if (hash.startsWith('#/posts/')) {
+      const id = parseInt(hash.slice('#/posts/'.length), 10)
+      if (!isNaN(id)) {
+        const post = postsData.find((p) => p.id === id)
+        if (post) {
+          currentPostId.value = post.id
+          terminalMode.value = 'post-detail'
+          pushEntry({
+            command: `post #${post.id}`,
+            type: 'component',
+            component: { name: 'PostDetail', props: { post } },
+          })
+          return true
+        }
+      }
+      cmdPosts('posts')
+      return true
+    }
+
+    switch (hash) {
+      case '#/posts':
+        cmdPosts('posts')
+        return true
+      case '#/about':
+        cmdAbout('about')
+        return true
+      case '#/friends':
+        cmdFriend('friends')
+        return true
+      default:
+        return false
+    }
+  }
 
   const currentPost = computed<Post | null>(() => {
     if (currentPostId.value === null) return null
@@ -49,7 +102,6 @@ export function useTerminal() {
       return false
     }
 
-    // Track command history
     if (commandHistory.value.length === 0 || commandHistory.value[commandHistory.value.length - 1] !== trimmed) {
       commandHistory.value.push(trimmed)
     }
@@ -60,16 +112,20 @@ export function useTerminal() {
     const cmdName = args[0].toLowerCase()
     const cmdArgs = args.slice(1)
 
-    // Handle context-sensitive commands
     if (cmdName === 'cd') {
-      if (terminalMode.value === 'post-detail' || terminalMode.value === 'posts-list') {
+      const fullscreenModes: TerminalMode[] = ['post-detail', 'posts-list', 'about', 'friends']
+      if (fullscreenModes.includes(terminalMode.value)) {
         if (cmdArgs.length === 0) {
-          pushEntry({ command: trimmed, type: 'html', html: 'cd: 缺少参数。用 <span style="color: var(--green)">cd ..</span> 返回或 <span style="color: var(--green)">cd &lt;编号&gt;</span> 跳转文章。' })
+          pushEntry({ command: trimmed, type: 'html', html: 'cd: 缺少参数。用 <span style="color: var(--green)">cd ..</span> 返回。' })
           command.value = ''
           return true
         }
         if (cmdArgs[0] === '..') {
-          goBackFromPost()
+          if (terminalMode.value === 'post-detail') {
+            goBackFromPost()
+          } else {
+            goHome()
+          }
           command.value = ''
           return true
         }
@@ -82,7 +138,6 @@ export function useTerminal() {
       return true
     }
 
-    // Route standard commands
     switch (cmdName) {
       case 'help':
         cmdHelp(trimmed)
@@ -132,6 +187,7 @@ export function useTerminal() {
     const post = postsData[index]
     if (!post) return
     currentPostId.value = post.id
+    terminalMode.value = 'post-detail'
     pushEntry({
       command: `post #${post.id}`,
       type: 'component',
@@ -145,18 +201,15 @@ export function useTerminal() {
   function goBackFromPost() {
     currentPostId.value = null
     postListSelectedIndex.value = 0
-    pushEntry({
-      command: 'cd ..',
-      type: 'component',
-      component: {
-        name: 'PostsList',
-        props: {
-          posts: postsData,
-          selectedIndex: postListSelectedIndex,
-          onSelect: (index: number) => selectPost(index),
-        },
-      },
-    })
+    terminalMode.value = 'posts-list'
+    cmdPosts('posts')
+  }
+
+  function goHome() {
+    currentPostId.value = null
+    postListSelectedIndex.value = 0
+    terminalMode.value = 'home'
+    showBanner()
   }
 
   // ── Command Handlers ────────────────────────────────────────────
@@ -172,12 +225,14 @@ export function useTerminal() {
     history.value = []
     currentPostId.value = null
     postListSelectedIndex.value = 0
+    terminalMode.value = 'home'
     cmdBanner('banner')
   }
 
   function cmdPosts(cmd: string) {
     currentPostId.value = null
     postListSelectedIndex.value = 0
+    terminalMode.value = 'posts-list'
     pushEntry({
       command: cmd,
       type: 'component',
@@ -193,6 +248,7 @@ export function useTerminal() {
   }
 
   function cmdAbout(cmd: string) {
+    terminalMode.value = 'about'
     pushEntry({
       command: cmd,
       type: 'component',
@@ -204,6 +260,7 @@ export function useTerminal() {
   }
 
   function cmdFriend(cmd: string) {
+    terminalMode.value = 'friends'
     pushEntry({
       command: cmd,
       type: 'component',
@@ -215,6 +272,7 @@ export function useTerminal() {
   }
 
   function cmdBanner(cmd: string) {
+    terminalMode.value = 'home'
     pushEntry({
       command: cmd,
       type: 'component',
@@ -285,7 +343,6 @@ export function useTerminal() {
       tabHints.value = []
     } else if (matches.length > 1) {
       tabHints.value = matches
-      // Auto-complete the common prefix
       let commonPrefix = matches[0]
       for (let i = 1; i < matches.length; i++) {
         while (!matches[i].startsWith(commonPrefix)) {
@@ -299,6 +356,23 @@ export function useTerminal() {
       tabHints.value = []
     }
   }
+
+  // ── Full-screen inline outputs ──────────────────────────────────
+  // Entries added after the last fullscreen navigation component —
+  // these should render inside the fullscreen view so the user sees them.
+  const fullscreenNavComponents = ['PostDetail', 'AboutView', 'FriendsList']
+  const fullscreenOutputs = computed(() => {
+    let lastNavIndex = -1
+    for (let i = history.value.length - 1; i >= 0; i--) {
+      const entry = history.value[i]
+      if (entry.type === 'component' && entry.component && fullscreenNavComponents.includes(entry.component.name)) {
+        lastNavIndex = i
+        break
+      }
+    }
+    if (lastNavIndex === -1) return []
+    return history.value.slice(lastNavIndex + 1)
+  })
 
   // ── Initial Banner ──────────────────────────────────────────────
   function showBanner() {
@@ -317,9 +391,12 @@ export function useTerminal() {
     executeCommand,
     selectPost,
     goBackFromPost,
+    goHome,
     recallHistory,
     handleTabComplete,
+    fullscreenOutputs,
     clearHistory: cmdClear,
     showBanner,
+    restoreFromHash,
   }
 }

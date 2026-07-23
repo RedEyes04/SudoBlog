@@ -21,6 +21,9 @@ const componentMap: Record<OutputComponentName, Component> = {
   FriendsList,
   HelpOutput,
 }
+
+// These are rendered full-screen by TerminalContainer, not inline
+const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutView', 'FriendsList'])
 </script>
 
 <template>
@@ -33,6 +36,10 @@ const componentMap: Record<OutputComponentName, Component> = {
 
     <!-- Output by type -->
     <div v-if="entry.type === 'html' && entry.html" class="output-html" v-html="entry.html" />
+    <!-- Fullscreen components: show nothing inline (rendered by TerminalContainer) -->
+    <div v-else-if="entry.type === 'component' && entry.component && fullscreenComponents.has(entry.component.name)" class="output-html">
+      <span class="muted">（全屏视图）</span>
+    </div>
     <component
       v-else-if="entry.type === 'component' && entry.component"
       :is="componentMap[entry.component.name]"
@@ -60,5 +67,10 @@ const componentMap: Record<OutputComponentName, Component> = {
   white-space: pre-wrap;
   line-height: 1.6;
   margin-bottom: 0.75rem;
+}
+
+.muted {
+  color: var(--dark-gray);
+  font-style: italic;
 }
 </style>
