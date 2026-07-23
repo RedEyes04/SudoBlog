@@ -113,27 +113,48 @@ export function useTerminal() {
     const cmdArgs = args.slice(1)
 
     if (cmdName === 'cd') {
-      const fullscreenModes: TerminalMode[] = ['post-detail', 'posts-list', 'about', 'friends']
-      if (fullscreenModes.includes(terminalMode.value)) {
-        if (cmdArgs.length === 0) {
-          pushEntry({ command: trimmed, type: 'html', html: 'cd: 缺少参数。用 <span style="color: var(--green)">cd ..</span> 返回。' })
-          command.value = ''
-          return true
+      // cd with no args → show current path
+      if (cmdArgs.length === 0) {
+        if (terminalMode.value === 'post-detail') {
+          pushEntry({ command: trimmed, type: 'html', html: `/posts/${currentPostId.value} — 用 <span style="color: var(--green)">cd ..</span> 返回列表。` })
+        } else if (terminalMode.value === 'posts-list') {
+          pushEntry({ command: trimmed, type: 'html', html: `/posts — 输入编号或回车进入文章。用 <span style="color: var(--green)">cd ..</span> 返回根目录。` })
+        } else if (terminalMode.value === 'about') {
+          pushEntry({ command: trimmed, type: 'html', html: '正在查看 about.md — 用 <span style="color: var(--green)">cd ..</span> 返回。' })
+        } else if (terminalMode.value === 'friends') {
+          pushEntry({ command: trimmed, type: 'html', html: '正在查看 friends.md — 用 <span style="color: var(--green)">cd ..</span> 返回。' })
+        } else {
+          pushEntry({ command: trimmed, type: 'html', html: '/ — 试试 <span style="color: var(--green)">cd posts</span>、<span style="color: var(--green)">vim about.md</span>、<span style="color: var(--green)">vim friends.md</span>。' })
         }
-        if (cmdArgs[0] === '..') {
-          if (terminalMode.value === 'post-detail') {
-            goBackFromPost()
-          } else {
-            goHome()
-          }
-          command.value = ''
-          return true
-        }
-        pushEntry({ command: trimmed, type: 'html', html: `cd: 未知参数: ${cmdArgs[0]}。试试 <span style="color: var(--green)">cd ..</span> 返回。` })
         command.value = ''
         return true
       }
-      pushEntry({ command: trimmed, type: 'html', html: 'cd: 这里不可用。试试 <span style="color: var(--green)">posts</span>、<span style="color: var(--green)">about</span>、<span style="color: var(--green)">friend</span> 或 <span style="color: var(--green)">help</span>。' })
+
+      // cd ..
+      if (cmdArgs[0] === '..') {
+        if (terminalMode.value === 'post-detail') {
+          goBackFromPost()
+        } else if (terminalMode.value === 'posts-list' || terminalMode.value === 'about' || terminalMode.value === 'friends') {
+          goHome()
+        } else {
+          pushEntry({ command: trimmed, type: 'html', html: '已经在根目录 /。' })
+        }
+        command.value = ''
+        return true
+      }
+
+      // cd posts
+      if (cmdArgs[0] === 'posts') {
+        if (terminalMode.value === 'posts-list') {
+          pushEntry({ command: trimmed, type: 'html', html: '已经在 /posts 目录。' })
+        } else {
+          cmdPosts(trimmed)
+        }
+        command.value = ''
+        return true
+      }
+
+      pushEntry({ command: trimmed, type: 'html', html: `cd: 没有这个目录: ${cmdArgs[0]}。试试 <span style="color: var(--green)">cd posts</span>。` })
       command.value = ''
       return true
     }
@@ -144,16 +165,6 @@ export function useTerminal() {
         break
       case 'clear':
         cmdClear()
-        break
-      case 'posts':
-        cmdPosts(trimmed)
-        break
-      case 'about':
-        cmdAbout(trimmed)
-        break
-      case 'friend':
-      case 'friends':
-        cmdFriend(trimmed)
         break
       case 'banner':
         cmdBanner(trimmed)
@@ -170,11 +181,22 @@ export function useTerminal() {
       case 'ls':
         cmdLs(trimmed)
         break
+      case 'vim':
+        if (cmdArgs.length === 0) {
+          pushEntry({ command: trimmed, type: 'html', html: 'vim: 缺少文件名。试试 <span style="color: var(--green)">vim about.md</span> 或 <span style="color: var(--green)">vim friends.md</span>。' })
+        } else if (cmdArgs[0] === 'about.md') {
+          cmdAbout(trimmed)
+        } else if (cmdArgs[0] === 'friends.md') {
+          cmdFriend(trimmed)
+        } else {
+          pushEntry({ command: trimmed, type: 'html', html: `vim: 文件不存在: ${cmdArgs[0]}` })
+        }
+        break
       default:
         pushEntry({
           command: trimmed,
           type: 'html',
-          html: `<span style="color: var(--red)">命令未找到: ${cmdName}</span>。输入 '<span style="color: var(--green)">help</span>' 查看可用命令。`,
+          html: `命令未找到: <span style="color: var(--red)">${cmdName}</span>。输入 <span style="color: var(--green)">help</span> 查看可用命令。`,
         })
     }
 
@@ -296,11 +318,16 @@ export function useTerminal() {
   }
 
   function cmdLs(cmd: string) {
-    pushEntry({
-      command: cmd,
-      type: 'html',
-      html: `<span style="color: var(--blue)">posts/</span>  <span style="color: var(--blue)">friends/</span>  <span style="color: var(--blue)">about/</span>`,
-    })
+    if (terminalMode.value === 'posts-list' || terminalMode.value === 'post-detail') {
+      const items = postsData.map((p, i) => `<span style="color: var(--blue)">${i + 1}.</span> ${p.title}`).join('<br>')
+      pushEntry({ command: cmd, type: 'html', html: items })
+    } else {
+      pushEntry({
+        command: cmd,
+        type: 'html',
+        html: `<span style="color: var(--blue)">posts/</span>  <span style="color: var(--green)">about.md</span>  <span style="color: var(--green)">friends.md</span>`,
+      })
+    }
   }
 
   // ── History Navigation ──────────────────────────────────────────
@@ -326,35 +353,74 @@ export function useTerminal() {
 
   // ── Tab Completion ──────────────────────────────────────────────
   const availableCommands = [
-    'about', 'banner', 'cd', 'clear', 'date', 'echo',
-    'friend', 'friends', 'help', 'ls', 'posts', 'whoami',
+    'banner', 'cd', 'clear', 'date', 'echo',
+    'help', 'ls', 'vim', 'whoami',
   ]
 
   function handleTabComplete() {
-    const input = command.value.toLowerCase()
-    if (!input) {
-      tabHints.value = []
+    const input = command.value
+    if (!input) { tabHints.value = []; return }
+
+    const parts = input.split(' ')
+    const cmdName = parts[0].toLowerCase()
+
+    // ── Completing first word (command name) ──
+    if (parts.length === 1) {
+      const matches = availableCommands.filter((c) => c.startsWith(cmdName))
+      if (matches.length === 1) {
+        command.value = matches[0] + ' '
+        tabHints.value = []
+      } else if (matches.length > 1) {
+        tabHints.value = matches
+        let commonPrefix = matches[0]
+        for (let i = 1; i < matches.length; i++) {
+          while (!matches[i].startsWith(commonPrefix)) {
+            commonPrefix = commonPrefix.slice(0, -1)
+          }
+        }
+        if (commonPrefix.length > cmdName.length) {
+          command.value = commonPrefix
+        }
+      } else {
+        tabHints.value = []
+      }
       return
     }
 
-    const matches = availableCommands.filter((c) => c.startsWith(input))
-    if (matches.length === 1) {
-      command.value = matches[0]
-      tabHints.value = []
-    } else if (matches.length > 1) {
-      tabHints.value = matches
-      let commonPrefix = matches[0]
-      for (let i = 1; i < matches.length; i++) {
-        while (!matches[i].startsWith(commonPrefix)) {
-          commonPrefix = commonPrefix.slice(0, -1)
-        }
+    // ── Completing arguments ──
+    const partialArg = parts.slice(1).join(' ').toLowerCase()
+
+    // cd <arg>
+    if (cmdName === 'cd') {
+      const cdArgs = ['posts', '..']
+      const matches = cdArgs.filter((a) => a.startsWith(partialArg))
+      if (matches.length === 1) {
+        command.value = 'cd ' + matches[0]
+        tabHints.value = []
+      } else if (matches.length > 1) {
+        tabHints.value = matches.map((m) => 'cd ' + m)
+      } else {
+        tabHints.value = []
       }
-      if (commonPrefix.length > input.length) {
-        command.value = commonPrefix
-      }
-    } else {
-      tabHints.value = []
+      return
     }
+
+    // vim <arg>
+    if (cmdName === 'vim') {
+      const vimArgs = ['about.md', 'friends.md']
+      const matches = vimArgs.filter((a) => a.startsWith(partialArg))
+      if (matches.length === 1) {
+        command.value = 'vim ' + matches[0]
+        tabHints.value = []
+      } else if (matches.length > 1) {
+        tabHints.value = matches.map((m) => 'vim ' + m)
+      } else {
+        tabHints.value = []
+      }
+      return
+    }
+
+    tabHints.value = []
   }
 
   // ── Full-screen inline outputs ──────────────────────────────────

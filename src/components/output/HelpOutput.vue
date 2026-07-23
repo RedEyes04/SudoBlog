@@ -2,17 +2,17 @@
 import { computed } from 'vue'
 
 const allCommands = [
-  { cmd: 'posts', desc: '浏览博客文章' },
-  { cmd: 'about', desc: '关于博主' },
-  { cmd: 'friend', desc: '查看友链' },
+  { cmd: 'cd posts', desc: '进入文章目录' },
+  { cmd: 'cd ..', desc: '返回上一级' },
+  { cmd: 'ls', desc: '列出当前目录内容' },
+  { cmd: 'vim about.md', desc: '查看关于页面' },
+  { cmd: 'vim friends.md', desc: '查看友链页面' },
   { cmd: 'clear', desc: '清屏（或 Ctrl+L）' },
   { cmd: 'banner', desc: '显示欢迎横幅' },
   { cmd: 'whoami', desc: '显示当前用户' },
   { cmd: 'date', desc: '显示当前日期时间' },
   { cmd: 'echo', desc: '输出文本到终端' },
-  { cmd: 'ls', desc: '列出可用栏目' },
   { cmd: 'help', desc: '显示此帮助信息' },
-  { cmd: 'cd ..', desc: '从文章中返回列表' },
 ]
 
 // Split into two columns

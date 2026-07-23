@@ -145,10 +145,9 @@ function onRecallHistory(direction: 'up' | 'down') {
         />
         <div class="cmd-hint">
           <span class="hint-key">cd ..</span> 返回列表 ·
-          <span class="hint-key">help</span> 帮助 ·
-          <span class="hint-key">posts</span> 文章 ·
-          <span class="hint-key">about</span> 关于 ·
-          <span class="hint-key">friend</span> 友链
+          <span class="hint-key">cd posts</span> 文章 ·
+          <span class="hint-key">vim about.md</span> 关于 ·
+          <span class="hint-key">vim friends.md</span> 友链
         </div>
       </div>
     </div>
@@ -188,9 +187,8 @@ function onRecallHistory(direction: 'up' | 'down') {
         />
         <div class="cmd-hint">
           <span class="hint-key">cd ..</span> 返回终端 ·
-          <span class="hint-key">help</span> 帮助 ·
-          <span class="hint-key">posts</span> 文章 ·
-          <span class="hint-key">friend</span> 友链
+          <span class="hint-key">cd posts</span> 文章 ·
+          <span class="hint-key">vim friends.md</span> 友链
         </div>
       </div>
     </div>
@@ -230,9 +228,8 @@ function onRecallHistory(direction: 'up' | 'down') {
         />
         <div class="cmd-hint">
           <span class="hint-key">cd ..</span> 返回终端 ·
-          <span class="hint-key">help</span> 帮助 ·
-          <span class="hint-key">posts</span> 文章 ·
-          <span class="hint-key">about</span> 关于
+          <span class="hint-key">cd posts</span> 文章 ·
+          <span class="hint-key">vim about.md</span> 关于
         </div>
       </div>
     </div>

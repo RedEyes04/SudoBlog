@@ -14,9 +14,9 @@ defineProps<{
       欢迎来到 <span class="highlight">{{ config.title }}</span> — 终端风格博客
     </p>
     <p class="commands-hint">
-      输入 <span class="cmd">posts</span> 浏览文章 &nbsp;|&nbsp;
-      输入 <span class="cmd">friend</span> 查看友链 &nbsp;|&nbsp;
-      输入 <span class="cmd">about</span> 了解博主 &nbsp;|&nbsp;
+      输入 <span class="cmd">cd posts</span> 浏览文章 &nbsp;|&nbsp;
+      输入 <span class="cmd">vim friends.md</span> 查看友链 &nbsp;|&nbsp;
+      输入 <span class="cmd">vim about.md</span> 了解博主 &nbsp;|&nbsp;
       输入 <span class="cmd">help</span> 查看所有命令
     </p>
   </div>
