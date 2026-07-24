@@ -260,12 +260,34 @@ function onRecallHistory(direction: 'up' | 'down') {
   width: 100vw;
   background: var(--bg);
   cursor: text;
+  animation: bootFadeIn 0.4s ease-out;
+}
+
+@keyframes bootFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .terminal-body {
   height: 100%;
   overflow-y: auto;
   padding: 2rem;
+  animation: bodyReveal 0.6s 0.1s ease-out both;
+}
+
+@keyframes bodyReveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 80% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 .fullscreen {

@@ -51,6 +51,18 @@ const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutV
 <style scoped>
 .history-entry {
   margin-bottom: 0;
+  animation: entryFadeIn 0.35s ease-out both;
+}
+
+@keyframes entryFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .command-line {
