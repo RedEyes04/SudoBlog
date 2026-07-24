@@ -33,6 +33,7 @@ defineProps<{
     <div class="footer-hint">
       <span class="hint-key">&#x2191;&#x2193;</span> 选择 &nbsp;
       <span class="hint-key">Enter</span> 或 <span class="hint-key">点击</span> 打开 &nbsp;
+      <span class="hint-key">vim {{ selectedIndex + 1 }}</span> 快速打开 #{{ selectedIndex + 1 }} &nbsp;
       <span class="hint-key">cd ..</span> 返回上级
     </div>
   </div>

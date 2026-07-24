@@ -3,7 +3,7 @@ import { onMounted, watch, ref, nextTick, type Component } from 'vue'
 import { useTerminal } from '../composables/useTerminal'
 import { posts as postsData } from '../data/posts'
 import { friends as friendsData } from '../data/friends'
-import { aboutData } from '../data/config'
+import { aboutData, siteConfig } from '../data/config'
 import type { OutputComponentName } from '../types'
 import TerminalHistory from './TerminalHistory.vue'
 import TerminalInput from './TerminalInput.vue'
@@ -19,6 +19,7 @@ const {
   history,
   command,
   terminalMode,
+  cwd,
   postListSelectedIndex,
   currentPost,
   tabHints,
@@ -118,7 +119,7 @@ function onRecallHistory(direction: 'up' | 'down') {
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
           <div class="inline-cmd-line">
-            <TerminalPrompt />
+            <TerminalPrompt :cwd="cwd" />
             <span class="inline-cmd-text">{{ entry.command }}</span>
           </div>
           <div v-if="entry.type === 'html' && entry.html" class="inline-html" v-html="entry.html" />
@@ -133,6 +134,7 @@ function onRecallHistory(direction: 'up' | 'down') {
         <TerminalInput
           ref="inputRef"
           :command="command"
+          :cwd="cwd"
           :mode="terminalMode"
           :tab-hints="tabHints"
           @update:command="onUpdateCommand"
@@ -144,8 +146,8 @@ function onRecallHistory(direction: 'up' | 'down') {
           @recall-history="onRecallHistory"
         />
         <div class="cmd-hint">
-          <span class="hint-key">cd ..</span> 返回列表 ·
-          <span class="hint-key">cd posts</span> 文章 ·
+          <span class="hint-key">:wq</span> 返回列表 ·
+          <span class="hint-key">vim &lt;id&gt;</span> 文章 ·
           <span class="hint-key">vim about.md</span> 关于 ·
           <span class="hint-key">vim friends.md</span> 友链
         </div>
@@ -160,7 +162,7 @@ function onRecallHistory(direction: 'up' | 'down') {
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
           <div class="inline-cmd-line">
-            <TerminalPrompt />
+            <TerminalPrompt :cwd="cwd" />
             <span class="inline-cmd-text">{{ entry.command }}</span>
           </div>
           <div v-if="entry.type === 'html' && entry.html" class="inline-html" v-html="entry.html" />
@@ -175,6 +177,7 @@ function onRecallHistory(direction: 'up' | 'down') {
         <TerminalInput
           ref="inputRef"
           :command="command"
+          :cwd="cwd"
           :mode="terminalMode"
           :tab-hints="tabHints"
           @update:command="onUpdateCommand"
@@ -186,8 +189,8 @@ function onRecallHistory(direction: 'up' | 'down') {
           @recall-history="onRecallHistory"
         />
         <div class="cmd-hint">
-          <span class="hint-key">cd ..</span> 返回终端 ·
-          <span class="hint-key">cd posts</span> 文章 ·
+          <span class="hint-key">:wq</span> 返回终端 ·
+          <span class="hint-key">vim &lt;id&gt;</span> 文章 ·
           <span class="hint-key">vim friends.md</span> 友链
         </div>
       </div>
@@ -201,7 +204,7 @@ function onRecallHistory(direction: 'up' | 'down') {
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
           <div class="inline-cmd-line">
-            <TerminalPrompt />
+            <TerminalPrompt :cwd="cwd" />
             <span class="inline-cmd-text">{{ entry.command }}</span>
           </div>
           <div v-if="entry.type === 'html' && entry.html" class="inline-html" v-html="entry.html" />
@@ -216,6 +219,7 @@ function onRecallHistory(direction: 'up' | 'down') {
         <TerminalInput
           ref="inputRef"
           :command="command"
+          :cwd="cwd"
           :mode="terminalMode"
           :tab-hints="tabHints"
           @update:command="onUpdateCommand"
@@ -227,8 +231,8 @@ function onRecallHistory(direction: 'up' | 'down') {
           @recall-history="onRecallHistory"
         />
         <div class="cmd-hint">
-          <span class="hint-key">cd ..</span> 返回终端 ·
-          <span class="hint-key">cd posts</span> 文章 ·
+          <span class="hint-key">:wq</span> 返回终端 ·
+          <span class="hint-key">vim &lt;id&gt;</span> 文章 ·
           <span class="hint-key">vim about.md</span> 关于
         </div>
       </div>
@@ -236,9 +240,10 @@ function onRecallHistory(direction: 'up' | 'down') {
 
     <!-- Normal terminal view -->
     <div v-else ref="containerRef" class="terminal-body">
-      <TerminalHistory :history="history" />
+      <TerminalHistory :history="history" :cwd="cwd" />
       <TerminalInput
         ref="inputRef"
+        :cwd="cwd"
         :command="command"
         :mode="terminalMode"
         :tab-hints="tabHints"
@@ -251,6 +256,9 @@ function onRecallHistory(direction: 'up' | 'down') {
         @recall-history="onRecallHistory"
       />
     </div>
+
+    <!-- Beian -->
+    <a v-if="siteConfig.beian" class="beian" href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank" rel="noopener">{{ siteConfig.beian }}</a>
   </div>
 </template>
 
@@ -260,15 +268,35 @@ function onRecallHistory(direction: 'up' | 'down') {
   width: 100vw;
   background: var(--bg);
   cursor: text;
+  position: relative;
   animation: bootFadeIn 0.4s ease-out;
 }
 
+/* ── Inset yellow frame with blur effect ── */
+.terminal-shell::before {
+  content: '';
+  position: fixed;
+  inset: 5px;
+  pointer-events: none;
+  z-index: 999;
+  border: 2.5px solid rgba(235, 203, 139, 0.6);
+  filter: blur(0.3px);
+  animation: frameGlow 3s ease-in-out infinite;
+}
+
 @keyframes bootFadeIn {
-  from {
-    opacity: 0;
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes frameGlow {
+  0%, 100% {
+    border-color: rgba(235, 203, 139, 0.5);
+    box-shadow: inset 0 0 30px rgba(235, 203, 139, 0.1), 0 0 20px rgba(235, 203, 139, 0.1);
   }
-  to {
-    opacity: 1;
+  50% {
+    border-color: rgba(235, 203, 139, 0.8);
+    box-shadow: inset 0 0 50px rgba(235, 203, 139, 0.18), 0 0 35px rgba(235, 203, 139, 0.18);
   }
 }
 
@@ -276,6 +304,7 @@ function onRecallHistory(direction: 'up' | 'down') {
   height: 100%;
   overflow-y: auto;
   padding: 2rem;
+  clip-path: inset(5px);
   animation: bodyReveal 0.6s 0.1s ease-out both;
 }
 
@@ -294,6 +323,7 @@ function onRecallHistory(direction: 'up' | 'down') {
   height: 100%;
   display: flex;
   flex-direction: column;
+  clip-path: inset(5px);
 }
 
 .fullscreen-content {
@@ -340,6 +370,22 @@ function onRecallHistory(direction: 'up' | 'down') {
 
 .hint-key {
   color: var(--gray);
+}
+
+.beian {
+  position: fixed;
+  bottom: 8px;
+  right: 16px;
+  color: rgba(229, 233, 240, 0.18);
+  font-size: 0.7em;
+  font-family: var(--font);
+  text-decoration: none;
+  z-index: 0;
+  transition: color 0.3s;
+}
+
+.beian:hover {
+  color: rgba(235, 203, 139, 0.5);
 }
 
 @media (max-width: 768px) {

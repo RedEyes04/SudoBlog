@@ -22,6 +22,7 @@ export interface SiteConfig {
   avatar: string
   bio: string
   name: string
+  beian?: string
 }
 
 export interface AboutData {

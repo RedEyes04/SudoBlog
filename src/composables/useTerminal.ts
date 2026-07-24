@@ -84,6 +84,11 @@ export function useTerminal() {
     return postsData.find((p) => p.id === currentPostId.value) ?? null
   })
 
+  // ── Current working directory (for prompt display) ──────────────
+  const cwd = computed(() => {
+    return terminalMode.value === 'posts-list' ? '~/posts' : '~'
+  })
+
   // ── Helpers ─────────────────────────────────────────────────────
   function pushEntry(entry: Omit<HistoryEntry, 'id'>) {
     history.value.push({ ...entry, id: nextEntryId++ })
@@ -116,13 +121,13 @@ export function useTerminal() {
       // cd with no args → show current path
       if (cmdArgs.length === 0) {
         if (terminalMode.value === 'post-detail') {
-          pushEntry({ command: trimmed, type: 'html', html: `/posts/${currentPostId.value} — 用 <span style="color: var(--green)">cd ..</span> 返回列表。` })
+          pushEntry({ command: trimmed, type: 'html', html: `正在查看文章 #${currentPostId.value} — 用 <span style="color: var(--green)">:wq</span> 返回列表。` })
         } else if (terminalMode.value === 'posts-list') {
-          pushEntry({ command: trimmed, type: 'html', html: `/posts — 输入编号或回车进入文章。用 <span style="color: var(--green)">cd ..</span> 返回根目录。` })
+          pushEntry({ command: trimmed, type: 'html', html: '/posts — 输入编号或回车进入文章。用 <span style="color: var(--green)">cd ..</span> 返回根目录。' })
         } else if (terminalMode.value === 'about') {
-          pushEntry({ command: trimmed, type: 'html', html: '正在查看 about.md — 用 <span style="color: var(--green)">cd ..</span> 返回。' })
+          pushEntry({ command: trimmed, type: 'html', html: '正在查看 about.md — 用 <span style="color: var(--green)">:wq</span> 返回。' })
         } else if (terminalMode.value === 'friends') {
-          pushEntry({ command: trimmed, type: 'html', html: '正在查看 friends.md — 用 <span style="color: var(--green)">cd ..</span> 返回。' })
+          pushEntry({ command: trimmed, type: 'html', html: '正在查看 friends.md — 用 <span style="color: var(--green)">:wq</span> 返回。' })
         } else {
           pushEntry({ command: trimmed, type: 'html', html: '/ — 试试 <span style="color: var(--green)">cd posts</span>、<span style="color: var(--green)">vim about.md</span>、<span style="color: var(--green)">vim friends.md</span>。' })
         }
@@ -159,6 +164,19 @@ export function useTerminal() {
       return true
     }
 
+    // ── Vim-style exit commands ──
+    if (cmdName === ':wq' || cmdName === ':q!' || cmdName === ':q') {
+      if (terminalMode.value === 'post-detail') {
+        goBackFromPost()
+      } else if (terminalMode.value === 'about' || terminalMode.value === 'friends') {
+        goHome()
+      } else {
+        pushEntry({ command: trimmed, type: 'html', html: '不在 vim 中。' })
+      }
+      command.value = ''
+      return true
+    }
+
     switch (cmdName) {
       case 'help':
         cmdHelp(trimmed)
@@ -183,11 +201,26 @@ export function useTerminal() {
         break
       case 'vim':
         if (cmdArgs.length === 0) {
-          pushEntry({ command: trimmed, type: 'html', html: 'vim: 缺少文件名。试试 <span style="color: var(--green)">vim about.md</span> 或 <span style="color: var(--green)">vim friends.md</span>。' })
+          pushEntry({ command: trimmed, type: 'html', html: 'vim: 缺少参数。试试 <span style="color: var(--green)">vim 1</span>、<span style="color: var(--green)">vim about.md</span>。' })
         } else if (cmdArgs[0] === 'about.md') {
           cmdAbout(trimmed)
         } else if (cmdArgs[0] === 'friends.md') {
           cmdFriend(trimmed)
+        } else if (/^\d+$/.test(cmdArgs[0])) {
+          // vim <id> — open post by numeric ID
+          const id = parseInt(cmdArgs[0], 10)
+          const post = postsData.find((p) => p.id === id)
+          if (post) {
+            currentPostId.value = post.id
+            terminalMode.value = 'post-detail'
+            pushEntry({
+              command: trimmed,
+              type: 'component',
+              component: { name: 'PostDetail', props: { post } },
+            })
+          } else {
+            pushEntry({ command: trimmed, type: 'html', html: `vim: 文章不存在: ${cmdArgs[0]}` })
+          }
         } else {
           pushEntry({ command: trimmed, type: 'html', html: `vim: 文件不存在: ${cmdArgs[0]}` })
         }
@@ -450,6 +483,7 @@ export function useTerminal() {
     history,
     command,
     terminalMode,
+    cwd,
     postListSelectedIndex,
     currentPostId,
     currentPost,

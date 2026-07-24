@@ -6,6 +6,7 @@ import TerminalPrompt from './TerminalPrompt.vue'
 const props = defineProps<{
   command: string
   mode: TerminalMode
+  cwd?: string
   tabHints?: string[]
 }>()
 
@@ -87,7 +88,7 @@ function handleKeydown(e: KeyboardEvent) {
 <template>
   <div class="input-wrapper">
     <div class="input-line" @click="focusInput">
-      <TerminalPrompt />
+      <TerminalPrompt :cwd="props.cwd" />
       <input
         ref="inputRef"
         :value="props.command"

@@ -7,6 +7,7 @@ export const siteConfig: SiteConfig = {
   avatar: 'https://bucket.redeyes.top/avater.webp',
   name: 'SudoBlog',
   bio: 'A terminal-style blog. Type `posts` to read articles, `friend` to see friends, `about` to learn more.',
+  beian: '苏ICP备2023017267号',
 }
 
 export const aboutData = {
@@ -17,8 +18,9 @@ export const aboutData = {
 我是一名热爱命令行和极简设计的开发者。这个博客用 Vue 3 构建，灵感来自经典的终端体验。
 
 随便逛逛：
-- 输入 \`posts\` 阅读文章
-- 输入 \`friend\` 查看友链
+- 输入 \`cd posts\` 进入文章目录
+- 输入 \`vim about.md\` 了解博主
+- 输入 \`vim friends.md\` 查看友链
 - 输入 \`help\` 查看所有命令
 
 感谢来访！`,

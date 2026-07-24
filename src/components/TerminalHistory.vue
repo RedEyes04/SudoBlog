@@ -11,6 +11,7 @@ import HelpOutput from './output/HelpOutput.vue'
 
 const props = defineProps<{
   history: HistoryEntry[]
+  cwd?: string
 }>()
 
 const componentMap: Record<OutputComponentName, Component> = {
@@ -30,7 +31,7 @@ const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutV
   <div v-for="entry in props.history" :key="entry.id" class="history-entry">
     <!-- Command line -->
     <div class="command-line">
-      <TerminalPrompt />
+      <TerminalPrompt :cwd="props.cwd" />
       <span class="command-text">{{ entry.command }}</span>
     </div>
 
