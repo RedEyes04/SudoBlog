@@ -277,11 +277,33 @@ export function useTerminal() {
   }
 
   function cmdClear() {
+    // In fullscreen modes, only clear inline outputs — don't jump home
+    const fullscreenModes: TerminalMode[] = ['post-detail', 'about', 'friends']
+    if (fullscreenModes.includes(terminalMode.value)) {
+      // Remove all entries after the last navigation component
+      const lastNavIndex = findLastNavIndex()
+      if (lastNavIndex >= 0) {
+        history.value = history.value.slice(0, lastNavIndex + 1)
+      }
+      return
+    }
+
     history.value = []
     currentPostId.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'home'
     cmdBanner('banner')
+  }
+
+  function findLastNavIndex(): number {
+    const fullscreenNavComponents = ['PostDetail', 'AboutView', 'FriendsList']
+    for (let i = history.value.length - 1; i >= 0; i--) {
+      const entry = history.value[i]
+      if (entry.type === 'component' && entry.component && fullscreenNavComponents.includes(entry.component.name)) {
+        return i
+      }
+    }
+    return -1
   }
 
   function cmdPosts(cmd: string) {
@@ -459,18 +481,12 @@ export function useTerminal() {
   // ── Full-screen inline outputs ──────────────────────────────────
   // Entries added after the last fullscreen navigation component —
   // these should render inside the fullscreen view so the user sees them.
-  const fullscreenNavComponents = ['PostDetail', 'AboutView', 'FriendsList']
   const fullscreenOutputs = computed(() => {
-    let lastNavIndex = -1
-    for (let i = history.value.length - 1; i >= 0; i--) {
-      const entry = history.value[i]
-      if (entry.type === 'component' && entry.component && fullscreenNavComponents.includes(entry.component.name)) {
-        lastNavIndex = i
-        break
-      }
-    }
+    const lastNavIndex = findLastNavIndex()
     if (lastNavIndex === -1) return []
-    return history.value.slice(lastNavIndex + 1)
+    const outputs = history.value.slice(lastNavIndex + 1)
+    // Keep only the last 2 entries so the inline outputs don't block the view
+    return outputs.slice(-2)
   })
 
   // ── Initial Banner ──────────────────────────────────────────────

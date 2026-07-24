@@ -1,13 +1,82 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { marked, Renderer } from 'marked'
 import type { Post } from '../../types'
+
+declare global {
+  interface Window {
+    twikoo?: {
+      init: (opts: Record<string, unknown>) => void
+    }
+  }
+}
 
 const props = defineProps<{
   post: Post
 }>()
 
-// ── Custom renderer: add language label + copy button to code blocks ──
+// ── TOC: extract headings from raw markdown ──
+interface TocItem {
+  id: string
+  text: string
+  level: number // 1 = h1, 2 = h2
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w一-鿿＀-￯]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+const tocItems = computed<TocItem[]>(() => {
+  // Strip fenced code blocks so `#` inside them isn't treated as a heading
+  const cleanContent = props.post.content.replace(/```[\s\S]*?```/g, '')
+  const headingRegex = /^(#{1,2})\s+(.+)$/gm
+  const items: TocItem[] = []
+  let match: RegExpExecArray | null
+  while ((match = headingRegex.exec(cleanContent)) !== null) {
+    const level = match[1].length
+    const text = match[2].trim()
+    items.push({ id: slugify(text), text, level })
+  }
+  return items
+})
+
+// ── Active heading tracking ──
+const activeId = ref<string>('')
+
+let observer: IntersectionObserver | null = null
+
+function setupScrollSpy() {
+  const headings = document.querySelectorAll('.markdown-body h1[id], .markdown-body h2[id]')
+  if (headings.length === 0) return
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      // Find the first heading that is currently intersecting (visible)
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeId.value = entry.target.id
+          break
+        }
+      }
+    },
+    { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+  )
+
+  headings.forEach((h) => observer!.observe(h))
+}
+
+function scrollToHeading(id: string) {
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    activeId.value = id
+  }
+}
+
+// ── Custom renderer: add ids to headings, language label + copy button to code blocks ──
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -17,18 +86,32 @@ function escapeHtml(text: string): string {
 }
 
 const renderer = new Renderer()
+
+// Add IDs to h1/h2 for TOC anchor linking
+const origHeading = renderer.heading.bind(renderer)
+renderer.heading = function ({ text, depth }: { text: string; depth: number }): string {
+  if (depth <= 2) {
+    const id = slugify(text)
+    return `<h${depth} id="${id}">${text}</h${depth}>`
+  }
+  return `<h${depth}>${text}</h${depth}>`
+}
+
 renderer.code = function ({ text, lang }: { text: string; lang?: string }): string {
   const language = lang || 'code'
-  // Always escape to prevent HTML in code from being rendered
   const safeCode = escapeHtml(text)
-  return `
-<div class="code-block-wrapper">
-  <div class="code-block-header">
-    <span class="code-lang-label">${language}</span>
-    <button class="copy-btn">复制</button>
-  </div>
-  <pre><code class="language-${language}">${safeCode}</code></pre>
-</div>`
+  // Base64-encode original text so copy can retrieve it reliably,
+  // avoiding any HTML-entity or template-literal corruption.
+  const encoded = btoa(unescape(encodeURIComponent(text)))
+  return [
+    '<div class="code-block-wrapper">',
+      '<div class="code-block-header">',
+        '<span class="code-lang-label">' + language + '</span>',
+        '<button class="copy-btn">复制</button>',
+      '</div>',
+      '<pre><code class="language-' + language + '" data-code="' + encoded + '">' + safeCode + '</code></pre>',
+    '</div>',
+  ].join('')
 }
 
 const html = computed(() => {
@@ -37,6 +120,40 @@ const html = computed(() => {
     gfm: true,
     renderer,
   }) as string
+})
+
+// ── Twikoo comment system ──
+function loadTwikoo() {
+  const existing = document.querySelector('script[src*="twikoo"]')
+  if (existing) {
+    if (window.twikoo) initTwikoo()
+    return
+  }
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/twikoo@1.7.14/dist/twikoo.min.js'
+  script.onload = () => {
+    if (window.twikoo) initTwikoo()
+  }
+  document.body.appendChild(script)
+}
+
+function initTwikoo() {
+  window.twikoo?.init({
+    envId: 'https://twikoo.redeyes.top',
+    el: '#tcomment',
+    path: window.location.hash || '/',
+    lang: 'zh-CN',
+  })
+}
+
+onMounted(() => {
+  loadTwikoo()
+  // Delay scroll-spy so the DOM is rendered
+  setTimeout(setupScrollSpy, 100)
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
 })
 
 // ── Copy button handler (event delegation) ──
@@ -48,15 +165,27 @@ function handleCopyClick(e: MouseEvent) {
   const codeEl = wrapper?.querySelector('code')
   if (!codeEl) return
 
-  navigator.clipboard.writeText(codeEl.textContent || '').then(() => {
+  // Prefer data-code (base64 of original) to avoid any encoding round-trip loss
+  let textToCopy: string
+  const raw = codeEl.getAttribute('data-code')
+  if (raw) {
+    try {
+      textToCopy = decodeURIComponent(escape(atob(raw)))
+    } catch {
+      textToCopy = codeEl.textContent || ''
+    }
+  } else {
+    textToCopy = codeEl.textContent || ''
+  }
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
     btn.textContent = '已复制'
     setTimeout(() => {
       btn.textContent = '复制'
     }, 2000)
   }).catch(() => {
-    // Fallback for older browsers
     const textarea = document.createElement('textarea')
-    textarea.value = codeEl.textContent || ''
+    textarea.value = textToCopy
     textarea.style.position = 'fixed'
     textarea.style.opacity = '0'
     document.body.appendChild(textarea)
@@ -73,6 +202,7 @@ function handleCopyClick(e: MouseEvent) {
 
 <template>
   <div class="post-page">
+    <!-- Main content -->
     <div class="post-content" @click="handleCopyClick">
       <!-- Header -->
       <div class="post-header">
@@ -92,7 +222,30 @@ function handleCopyClick(e: MouseEvent) {
       <div class="markdown-body" v-html="html" />
 
       <hr class="divider" />
+
+      <!-- Comments -->
+      <div id="tcomment" class="comment-section" />
     </div>
+
+    <!-- TOC floating sidebar (right side) -->
+    <nav v-if="tocItems.length > 0" class="toc-sidebar">
+      <div class="toc-title">目录</div>
+      <ul class="toc-list">
+        <li
+          v-for="item in tocItems"
+          :key="item.id"
+          class="toc-item"
+          :class="{
+            'toc-h1': item.level === 1,
+            'toc-h2': item.level === 2,
+            active: activeId === item.id,
+          }"
+          @click="scrollToHeading(item.id)"
+        >
+          {{ item.text }}
+        </li>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -100,13 +253,80 @@ function handleCopyClick(e: MouseEvent) {
 .post-page {
   height: 100%;
   padding: 2rem;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
 }
 
+/* ── TOC floating sidebar (right side) ── */
+.toc-sidebar {
+  position: fixed;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 220px;
+  max-height: calc(100vh - 14rem);
+  overflow-y: auto;
+  padding: 0.8rem 1rem;
+  background: rgba(46, 52, 64, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--dark-gray);
+  border-left: 3px solid var(--green);
+  border-radius: 6px;
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
+.toc-title {
+  color: var(--green);
+  font-weight: bold;
+  font-size: 0.95em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--dark-gray);
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-item {
+  color: var(--gray);
+  font-size: 0.82em;
+  line-height: 1.5;
+  padding: 0.25em 0;
+  cursor: pointer;
+  transition: color 0.15s, padding-left 0.15s;
+  border-radius: 2px;
+  word-break: break-word;
+}
+
+.toc-item:hover {
+  color: var(--fg);
+}
+
+.toc-item.active {
+  color: var(--green);
+  font-weight: bold;
+}
+
+.toc-h1 {
+  /* top-level: no indent */
+}
+
+.toc-h2 {
+  padding-left: 1.2em;
+}
+
+/* ── Main content ── */
 .post-content {
   max-width: 860px;
-  margin: 0 auto;
-  width: 100%;
+  min-width: 0;
+  flex: 1;
   padding-bottom: 1rem;
+  padding-right: 0;
 }
 
 .post-header {
@@ -204,5 +424,24 @@ function handleCopyClick(e: MouseEvent) {
   background: transparent;
   padding: 0;
   font-size: 0.85em;
+}
+
+/* ── Twikoo comments ── */
+.comment-section {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* ── Responsive: hide TOC on narrow screens ── */
+@media (max-width: 1200px) {
+  .toc-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .post-page {
+    padding: 1rem;
+  }
 }
 </style>

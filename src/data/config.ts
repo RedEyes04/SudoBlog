@@ -12,18 +12,14 @@ export const siteConfig: SiteConfig = {
 
 export const aboutData = {
   avatar: 'https://bucket.redeyes.top/avater.webp',
-  name: '博主',
-  bio: `嗨！欢迎来到我的终端风格博客。
+  name: 'REDEYES',
+  bio: `写代码的，也跑步。
 
-我是一名热爱命令行和极简设计的开发者。这个博客用 Vue 3 构建，灵感来自经典的终端体验。
+前端主要用 Vue 和 TypeScript，后端 Node.js / Python 都写，数据库 MySQL。追求干净、好维护的代码，不喜欢过度设计。
 
-随便逛逛：
-- 输入 \`cd posts\` 进入文章目录
-- 输入 \`vim about.md\` 了解博主
-- 输入 \`vim friends.md\` 查看友链
-- 输入 \`help\` 查看所有命令
+跑步好几年了，习惯晨跑，5 分配速巡航，正在准备下一个全马。网络安全方向，持续学习中。
 
-感谢来访！`,
+这个博客用终端风格搭的，觉得好玩就留个言。`,
 }
 
 export const asciiBanner = `

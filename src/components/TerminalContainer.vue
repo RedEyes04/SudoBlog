@@ -68,7 +68,12 @@ watch(history, () => {
   }
 }, { deep: true })
 
-function focusTerminal() {
+function focusTerminal(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  // Don't steal focus from Twikoo or other inputs
+  if (target.closest('#tcomment, input, textarea, button, a, [contenteditable]')) return
+  // Don't steal focus if user just made a text selection
+  if (window.getSelection()?.toString().trim()) return
   inputRef.value?.focusInput()
 }
 
@@ -110,7 +115,7 @@ function onRecallHistory(direction: 'up' | 'down') {
 </script>
 
 <template>
-  <div class="terminal-shell" @click="focusTerminal">
+  <div class="terminal-shell" @click="focusTerminal($event)">
     <!-- Full-screen post detail view -->
     <div v-if="terminalMode === 'post-detail' && currentPost" class="fullscreen">
       <div class="fullscreen-content">

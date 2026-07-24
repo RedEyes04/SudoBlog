@@ -1,9 +1,48 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import type { Friend } from '../../types'
 
 defineProps<{
   friends: Friend[]
 }>()
+
+// ── Twikoo ──
+declare global {
+  interface Window {
+    twikoo?: { init: (opts: Record<string, unknown>) => void }
+  }
+}
+
+let timer: ReturnType<typeof setTimeout> | null = null
+
+onMounted(() => {
+  timer = setTimeout(loadTwikoo, 300)
+})
+
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
+
+function loadTwikoo() {
+  const existing = document.querySelector('script[src*="twikoo"]')
+  if (existing) {
+    if (window.twikoo) initTwikoo()
+    return
+  }
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/twikoo@1.7.14/dist/twikoo.min.js'
+  script.onload = () => { if (window.twikoo) initTwikoo() }
+  document.body.appendChild(script)
+}
+
+function initTwikoo() {
+  window.twikoo?.init({
+    envId: 'https://twikoo.redeyes.top',
+    el: '#tcomment-friends',
+    path: '/friends',
+    lang: 'zh-CN',
+  })
+}
 </script>
 
 <template>
@@ -33,6 +72,11 @@ defineProps<{
           <span class="visit-hint">访问 &rarr;</span>
         </a>
       </div>
+
+      <hr class="divider" />
+
+      <!-- Comments -->
+      <div id="tcomment-friends" class="comment-section" />
     </div>
   </div>
 </template>
@@ -44,6 +88,8 @@ defineProps<{
 }
 
 .friends-content {
+  max-width: 960px;
+  margin: 0 auto;
   padding-bottom: 1rem;
 }
 
@@ -69,8 +115,6 @@ defineProps<{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
-  max-width: 960px;
-  margin: 0 auto;
 }
 
 .friend-card {
@@ -137,5 +181,17 @@ defineProps<{
 
 .friend-card:hover .visit-hint {
   color: var(--green);
+}
+
+/* ── Divider ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--dark-gray);
+  margin: 1.5em 0;
+}
+
+/* ── Comments ── */
+.comment-section {
+  width: 100%;
 }
 </style>
