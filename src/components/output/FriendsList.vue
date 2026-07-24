@@ -72,6 +72,18 @@ function initTwikoo() {
         </a>
       </div>
 
+      <!-- 本站友链 -->
+      <div class="my-link-section">
+        <div class="my-link-title">本站友链信息 <span class="owo">OωO</span></div>
+        <div class="my-link-code">
+          <p><span class="label">Name</span>     REDEYESの终端</p>
+          <p><span class="label">Link</span>     https://www.redeyes.top/</p>
+          <p><span class="label">Avatar</span>   https://bucket.redeyes.top/avater.webp</p>
+          <p><span class="label">Desc</span>     努力学网络的计科人</p>
+          <p><span class="label">Snapshot</span> https://bucket.redeyes.top/2024/10/20/82681b.webp</p>
+        </div>
+      </div>
+
       <hr class="divider" />
 
       <!-- Comments -->
@@ -180,6 +192,44 @@ function initTwikoo() {
 
 .friend-card:hover .visit-hint {
   color: var(--green);
+}
+
+/* ── 本站友链 ── */
+.my-link-section {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.my-link-title {
+  color: var(--green);
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 0.6rem;
+  text-align: center;
+}
+
+.owo {
+  color: var(--yellow);
+  font-weight: normal;
+}
+
+.my-link-code {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--dark-gray);
+  border-radius: 4px;
+  padding: 0.8em 1em;
+  font-family: var(--font);
+  font-size: 0.82em;
+  color: var(--fg);
+  line-height: 1.9;
+}
+
+.my-link-code p {
+  margin: 0;
+}
+
+.label {
+  color: rgb(163, 190, 140);
 }
 
 /* ── Divider ── */
