@@ -11,7 +11,7 @@ export function useTerminal() {
   const commandHistory = ref<string[]>([])
   const historyIndex = ref(-1)
   const postListSelectedIndex = ref(0)
-  const currentPostId = ref<number | null>(null)
+  const currentPostSlug = ref<string | null>(null)
   const tabHints = ref<string[]>([])
   let nextEntryId = 1
 
@@ -23,7 +23,7 @@ export function useTerminal() {
     let hash = ''
     switch (terminalMode.value) {
       case 'post-detail':
-        if (currentPostId.value !== null) hash = `#/posts/${currentPostId.value}`
+        if (currentPostSlug.value !== null) hash = `#/posts/${currentPostSlug.value}`
         break
       case 'posts-list':
         hash = '#/posts'
@@ -40,20 +40,20 @@ export function useTerminal() {
     window.history.replaceState(null, '', hash || window.location.pathname)
   }
 
-  watch([terminalMode, currentPostId], () => syncHash())
+  watch([terminalMode, currentPostSlug], () => syncHash())
 
   function restoreFromHash(): boolean {
     const hash = window.location.hash
 
     if (hash.startsWith('#/posts/')) {
-      const id = parseInt(hash.slice('#/posts/'.length), 10)
-      if (!isNaN(id)) {
-        const post = postsData.find((p) => p.id === id)
+      const slug = hash.slice('#/posts/'.length)
+      if (slug) {
+        const post = postsData.find((p) => p.slug === slug)
         if (post) {
-          currentPostId.value = post.id
+          currentPostSlug.value = post.slug
           terminalMode.value = 'post-detail'
           pushEntry({
-            command: `post #${post.id}`,
+            command: `post #${post.slug}`,
             type: 'component',
             component: { name: 'PostDetail', props: { post } },
           })
@@ -80,8 +80,8 @@ export function useTerminal() {
   }
 
   const currentPost = computed<Post | null>(() => {
-    if (currentPostId.value === null) return null
-    return postsData.find((p) => p.id === currentPostId.value) ?? null
+    if (currentPostSlug.value === null) return null
+    return postsData.find((p) => p.slug === currentPostSlug.value) ?? null
   })
 
   // ── Current working directory (for prompt display) ──────────────
@@ -121,7 +121,7 @@ export function useTerminal() {
       // cd with no args → show current path
       if (cmdArgs.length === 0) {
         if (terminalMode.value === 'post-detail') {
-          pushEntry({ command: trimmed, type: 'html', html: `正在查看文章 #${currentPostId.value} — 用 <span style="color: var(--green)">:wq</span> 返回列表。` })
+          pushEntry({ command: trimmed, type: 'html', html: `正在查看文章 #${currentPostSlug.value} — 用 <span style="color: var(--green)">:wq</span> 返回列表。` })
         } else if (terminalMode.value === 'posts-list') {
           pushEntry({ command: trimmed, type: 'html', html: '/posts — 输入编号或回车进入文章。用 <span style="color: var(--green)">cd ..</span> 返回根目录。' })
         } else if (terminalMode.value === 'about') {
@@ -206,12 +206,12 @@ export function useTerminal() {
           cmdAbout(trimmed)
         } else if (cmdArgs[0] === 'friends.md') {
           cmdFriend(trimmed)
-        } else if (/^\d+$/.test(cmdArgs[0])) {
-          // vim <id> — open post by numeric ID
-          const id = parseInt(cmdArgs[0], 10)
-          const post = postsData.find((p) => p.id === id)
+        } else {
+          // vim <slug> — open post by slug
+          const slug = cmdArgs[0]
+          const post = postsData.find((p) => p.slug === slug)
           if (post) {
-            currentPostId.value = post.id
+            currentPostSlug.value = post.slug
             terminalMode.value = 'post-detail'
             pushEntry({
               command: trimmed,
@@ -221,8 +221,6 @@ export function useTerminal() {
           } else {
             pushEntry({ command: trimmed, type: 'html', html: `vim: 文章不存在: ${cmdArgs[0]}` })
           }
-        } else {
-          pushEntry({ command: trimmed, type: 'html', html: `vim: 文件不存在: ${cmdArgs[0]}` })
         }
         break
       default:
@@ -241,10 +239,10 @@ export function useTerminal() {
   function selectPost(index: number) {
     const post = postsData[index]
     if (!post) return
-    currentPostId.value = post.id
+    currentPostSlug.value = post.slug
     terminalMode.value = 'post-detail'
     pushEntry({
-      command: `post #${post.id}`,
+      command: `post #${post.slug}`,
       type: 'component',
       component: {
         name: 'PostDetail',
@@ -254,14 +252,14 @@ export function useTerminal() {
   }
 
   function goBackFromPost() {
-    currentPostId.value = null
+    currentPostSlug.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'posts-list'
     cmdPosts('posts')
   }
 
   function goHome() {
-    currentPostId.value = null
+    currentPostSlug.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'home'
     showBanner()
@@ -289,7 +287,7 @@ export function useTerminal() {
     }
 
     history.value = []
-    currentPostId.value = null
+    currentPostSlug.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'home'
     cmdBanner('banner')
@@ -307,7 +305,7 @@ export function useTerminal() {
   }
 
   function cmdPosts(cmd: string) {
-    currentPostId.value = null
+    currentPostSlug.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'posts-list'
     pushEntry({
@@ -501,7 +499,7 @@ export function useTerminal() {
     terminalMode,
     cwd,
     postListSelectedIndex,
-    currentPostId,
+    currentPostSlug,
     currentPost,
     tabHints,
     executeCommand,

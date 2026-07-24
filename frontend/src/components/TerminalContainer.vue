@@ -30,8 +30,6 @@ const {
   handleTabComplete,
   clearHistory,
   showBanner,
-  goBackFromPost,
-  goHome,
   restoreFromHash,
 } = useTerminal()
 

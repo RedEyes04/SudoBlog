@@ -1,10 +1,56 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref, reactive } from 'vue'
 import type { Friend } from '../../types'
 
 defineProps<{
   friends: Friend[]
 }>()
+
+// ── Application form ──
+const showForm = ref(false)
+const applying = ref(false)
+const submitted = ref(false)
+const submitError = ref('')
+
+const applyForm = reactive({
+  name: '',
+  url: '',
+  avatar: '',
+  description: '',
+  thumbnail: '',
+})
+
+async function handleApply() {
+  if (!applyForm.name || !applyForm.url) {
+    submitError.value = '请填写网站名称和链接'
+    return
+  }
+  applying.value = true
+  submitError.value = ''
+  try {
+    const resp = await fetch('/api/friends/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: applyForm.name.trim(),
+        url: applyForm.url.trim(),
+        avatar: applyForm.avatar.trim(),
+        description: applyForm.description.trim(),
+        thumbnail: applyForm.thumbnail.trim(),
+      }),
+    })
+    if (resp.ok) {
+      submitted.value = true
+    } else {
+      const err = await resp.json()
+      submitError.value = err.error || '提交失败，请稍后再试'
+    }
+  } catch {
+    submitError.value = '网络错误，请稍后再试'
+  } finally {
+    applying.value = false
+  }
+}
 
 // ── Twikoo ──
 declare global {
@@ -54,7 +100,7 @@ function initTwikoo() {
       <div class="grid">
         <a
           v-for="friend in friends"
-          :key="friend.url"
+          :key="friend.id"
           :href="friend.url"
           target="_blank"
           rel="noopener"
@@ -82,6 +128,39 @@ function initTwikoo() {
           <p><span class="label">Desc</span>     努力学网络的计科人</p>
           <p><span class="label">Snapshot</span> https://bucket.redeyes.top/2024/10/20/82681b.webp</p>
         </div>
+      </div>
+
+      <!-- 友链申请 -->
+      <div class="apply-section">
+        <div class="apply-toggle" @click="showForm = !showForm">
+          <span class="apply-title">申请友链 <span class="owo">{{ showForm ? '▼' : '▶' }}</span></span>
+        </div>
+        <form v-if="showForm" class="apply-form" @submit.prevent="handleApply">
+          <div class="form-row">
+            <label class="form-label">网站名称 <span class="required">*</span></label>
+            <input v-model="applyForm.name" type="text" class="form-input" placeholder="你的网站名称" required />
+          </div>
+          <div class="form-row">
+            <label class="form-label">网站链接 <span class="required">*</span></label>
+            <input v-model="applyForm.url" type="url" class="form-input" placeholder="https://..." required />
+          </div>
+          <div class="form-row">
+            <label class="form-label">头像链接</label>
+            <input v-model="applyForm.avatar" type="url" class="form-input" placeholder="https://...avatar.png" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">网站描述</label>
+            <input v-model="applyForm.description" type="text" class="form-input" placeholder="简短描述你的网站" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">缩略图链接</label>
+            <input v-model="applyForm.thumbnail" type="url" class="form-input" placeholder="https://...thumbnail.png" />
+          </div>
+          <button type="submit" class="apply-btn" :disabled="applying">
+            {{ applying ? '提交中...' : submitted ? '已提交 ✓' : '提交申请' }}
+          </button>
+          <p v-if="submitError" class="apply-error">{{ submitError }}</p>
+        </form>
       </div>
 
       <hr class="divider" />
@@ -237,6 +316,97 @@ function initTwikoo() {
   border: none;
   border-top: 1px solid var(--dark-gray);
   margin: 1.5em 0;
+}
+
+/* ── Application form ── */
+.apply-section {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.apply-toggle {
+  cursor: pointer;
+  padding: 0.5em 0;
+  text-align: center;
+  user-select: none;
+}
+
+.apply-title {
+  color: var(--green);
+  font-weight: bold;
+  font-size: 0.95em;
+}
+
+.apply-form {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--dark-gray);
+  border-radius: 4px;
+  padding: 1em 1.2em;
+  margin-top: 0.6em;
+}
+
+.form-row {
+  margin-bottom: 0.8em;
+}
+
+.form-label {
+  display: block;
+  color: var(--gray);
+  font-size: 0.8em;
+  margin-bottom: 0.3em;
+}
+
+.required {
+  color: var(--red);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5em 0.7em;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--dark-gray);
+  border-radius: 3px;
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 0.85em;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: var(--green);
+}
+
+.apply-btn {
+  display: block;
+  width: 100%;
+  padding: 0.6em;
+  background: var(--green);
+  color: var(--bg);
+  border: none;
+  border-radius: 3px;
+  font-family: var(--font);
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.apply-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.apply-error {
+  color: var(--red);
+  font-size: 0.8em;
+  margin-top: 0.5em;
+  text-align: center;
 }
 
 /* ── Comments ── */

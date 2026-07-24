@@ -1,0 +1,12 @@
+{
+  "name": "sudoblog",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && npx tsx src/index.ts",
+    "dev:admin": "cd admin && npx vite",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:admin": "cd admin && npx vite build",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:admin && npm run build:frontend"
+  }
+}

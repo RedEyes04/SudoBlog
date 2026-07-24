@@ -1,0 +1,49 @@
+[
+  {
+    "id": "alice-dev-log",
+    "name": "Alice's Dev Log",
+    "avatar": "https://api.dicebear.com/9.x/initials/svg?seed=Alice&backgroundColor=BF616A",
+    "description": "Frontend developer sharing tips on Vue, React, and CSS artistry.",
+    "url": "https://example.com/alice",
+    "thumbnail": "https://picsum.photos/seed/alice/400/200",
+    "status": "approved"
+  },
+  {
+    "id": "bob-backend",
+    "name": "Bob's Backend",
+    "avatar": "https://api.dicebear.com/9.x/initials/svg?seed=Bob&backgroundColor=A3BE8C",
+    "description": "Deep dives into Rust, Go, and distributed systems design.",
+    "url": "https://example.com/bob",
+    "thumbnail": "https://picsum.photos/seed/bob/400/200",
+    "status": "approved"
+  },
+  {
+    "id": "carol-codes",
+    "name": "Carol Codes",
+    "avatar": "https://api.dicebear.com/9.x/initials/svg?seed=Carol&backgroundColor=EBCB8B",
+    "description": "Full-stack developer. Loves TypeScript, GraphQL, and good coffee.",
+    "url": "https://example.com/carol",
+    "thumbnail": "https://picsum.photos/seed/carol/400/200",
+    "status": "approved"
+  },
+  {
+    "id": "test-friend",
+    "name": "Test Friend",
+    "url": "https://test.com",
+    "avatar": "",
+    "description": "A test",
+    "thumbnail": "",
+    "status": "pending",
+    "createdAt": "2026-07-24T08:50:39.502Z"
+  },
+  {
+    "id": "redeyes",
+    "name": "REDEYESの终端",
+    "url": "https://www.redeyes.top/",
+    "avatar": "https://bucket.redeyes.top/avater.webp",
+    "description": "努力学网络的计科人",
+    "thumbnail": "https://bucket.redeyes.top/2024/10/20/82681b.webp",
+    "status": "approved",
+    "createdAt": "2026-07-24T09:01:03.547Z"
+  }
+]

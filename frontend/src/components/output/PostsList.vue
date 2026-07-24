@@ -16,7 +16,7 @@ defineProps<{
     <div class="list">
       <div
         v-for="(post, index) in posts"
-        :key="post.id"
+        :key="post.slug"
         class="post-item"
         :class="{ selected: index === selectedIndex }"
         @click="onSelect(index)"

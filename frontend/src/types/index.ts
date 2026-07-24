@@ -1,18 +1,23 @@
 export interface Post {
-  id: number
+  slug: string
   title: string
   subtitle: string
   summary: string
   date: string
   content: string // markdown
+  tags?: string[]
+  cover?: string
+  status?: 'publish' | 'draft'
 }
 
 export interface Friend {
+  id: string
   name: string
   avatar: string
   description: string
   url: string
   thumbnail: string
+  status?: 'pending' | 'approved' | 'rejected'
 }
 
 export interface SiteConfig {

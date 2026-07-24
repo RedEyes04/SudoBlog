@@ -88,7 +88,7 @@ function escapeHtml(text: string): string {
 const renderer = new Renderer()
 
 // Add IDs to h1/h2 for TOC anchor linking
-const origHeading = renderer.heading.bind(renderer)
+
 renderer.heading = function ({ text, depth }: { text: string; depth: number }): string {
   if (depth <= 2) {
     const id = slugify(text)

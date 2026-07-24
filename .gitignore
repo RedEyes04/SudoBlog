@@ -4,6 +4,13 @@ node_modules/
 # Build output
 dist/
 
+# Prebuild copy target (posts source is in root /posts/)
+frontend/src/content/posts/
+
+# Uploaded images (keep .gitkeep)
+public/images/*
+!public/images/.gitkeep
+
 # IDE
 .vscode/
 .idea/
