@@ -11,7 +11,6 @@ defineProps<{
 <template>
   <div class="posts-list">
     <div class="header">
-      <span class="header-icon">&#128196;</span>
       文章列表 <span class="count">（共 {{ posts.length }} 篇）</span>
     </div>
     <div class="list">

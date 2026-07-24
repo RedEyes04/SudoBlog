@@ -49,8 +49,7 @@ function initTwikoo() {
   <div class="friends-page">
     <div class="friends-content">
       <div class="header">
-        <span class="header-icon">&#128279;</span>
-        友链 <span class="count">（共 {{ friends.length }} 个）</span>
+        友链
       </div>
       <div class="grid">
         <a
