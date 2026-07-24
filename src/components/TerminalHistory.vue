@@ -28,7 +28,7 @@ const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutV
 </script>
 
 <template>
-  <div v-for="entry in props.history" :key="entry.id" class="history-entry">
+  <div v-for="(entry, i) in props.history" :key="entry.id" class="history-entry" :style="{ animationDelay: i === 0 ? '0s' : i === 1 ? '1s' : '0s' }">
     <!-- Command line -->
     <div class="command-line">
       <TerminalPrompt :cwd="props.cwd" />
@@ -74,6 +74,15 @@ const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutV
 
 .command-text {
   color: var(--fg);
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  animation: typeCmd 0.25s steps(6, end) forwards;
+}
+
+@keyframes typeCmd {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
 }
 
 .output-html {
