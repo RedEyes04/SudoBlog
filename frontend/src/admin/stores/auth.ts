@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../api'
 
+function getAdminPath(): string {
+  return localStorage.getItem('admin_path') || '/admin'
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('admin_token'))
 
@@ -19,7 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     token.value = null
     localStorage.removeItem('admin_token')
-    window.location.href = '/login'
+    window.location.href = getAdminPath() + '/login'
   }
 
   return { token, isAuthenticated, login, logout }

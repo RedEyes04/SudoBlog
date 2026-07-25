@@ -30,6 +30,9 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Credentials (contains password hash)
+data/credentials.json
+
 # Logs
 *.log
 npm-debug.log*

@@ -1,10 +1,15 @@
-import type { SiteConfig } from '../types'
+import type { SiteConfig, AdminConfig } from '../types'
 import configData from '../../../data/config.json'
 
 /**
  * Site configuration loaded from data/config.json at build time.
  * The prebuild script (copy-data.cjs) copies ../data/config.json into src/data/.
  */
+
+interface RawAdminConfig {
+  path?: string
+  command?: string
+}
 
 interface RawConfig {
   site: {
@@ -17,6 +22,7 @@ interface RawConfig {
     beian: string
   }
   asciiBanner: string
+  admin?: RawAdminConfig
 }
 
 const raw = configData as RawConfig
@@ -38,3 +44,8 @@ export const aboutData = {
 }
 
 export const asciiBanner: string = raw.asciiBanner || ''
+
+export const adminConfig: AdminConfig = {
+  path: raw.admin?.path || '/admin',
+  command: raw.admin?.command || 'admin',
+}

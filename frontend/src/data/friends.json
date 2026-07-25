@@ -27,40 +27,23 @@
     "status": "approved"
   },
   {
-    "id": "dave-den",
-    "name": "Dave's Den",
-    "avatar": "https://api.dicebear.com/9.x/initials/svg?seed=Dave&backgroundColor=5E81AC",
-    "description": "Security researcher writing about CTF challenges and exploit development.",
-    "url": "https://example.com/dave",
-    "thumbnail": "https://picsum.photos/seed/dave/400/200",
-    "status": "approved"
-  },
-  {
-    "id": "eve-explorations",
-    "name": "Eve's Explorations",
-    "avatar": "https://api.dicebear.com/9.x/initials/svg?seed=Eve&backgroundColor=88C0D0",
-    "description": "AI/ML engineer exploring LLMs, diffusion models, and the future of tech.",
-    "url": "https://example.com/eve",
-    "thumbnail": "https://picsum.photos/seed/eve/400/200",
-    "status": "approved"
-  },
-  {
-    "id": "frank-field-notes",
-    "name": "Frank's Field Notes",
-    "avatar": "https://api.dicebear.com/9.x/initials/svg?seed=Frank&backgroundColor=D08770",
-    "description": "Mobile developer building beautiful apps with Flutter and SwiftUI.",
-    "url": "https://example.com/frank",
-    "thumbnail": "https://picsum.photos/seed/frank/400/200",
-    "status": "approved"
-  },
-  {
     "id": "test-friend",
     "name": "Test Friend",
     "url": "https://test.com",
     "avatar": "",
     "description": "A test",
     "thumbnail": "",
-    "status": "pending",
+    "status": "approved",
     "createdAt": "2026-07-24T08:50:39.502Z"
+  },
+  {
+    "id": "redeyes",
+    "name": "REDEYESの终端",
+    "url": "https://www.redeyes.top/",
+    "avatar": "https://bucket.redeyes.top/avater.webp",
+    "description": "努力学网络的计科人",
+    "thumbnail": "https://bucket.redeyes.top/2024/10/20/82681b.webp",
+    "status": "approved",
+    "createdAt": "2026-07-24T09:01:03.547Z"
   }
 ]

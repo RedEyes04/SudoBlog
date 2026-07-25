@@ -2,7 +2,7 @@ import { ref, computed, watch } from 'vue'
 import type { HistoryEntry, TerminalMode, Post } from '../types'
 import { posts as postsData } from '../data/posts'
 import { friends as friendsData } from '../data/friends'
-import { aboutData, asciiBanner, siteConfig } from '../data/config'
+import { aboutData, asciiBanner, siteConfig, adminConfig } from '../data/config'
 
 export function useTerminal() {
   // ── Reactive State ──────────────────────────────────────────────
@@ -224,11 +224,23 @@ export function useTerminal() {
         }
         break
       default:
-        pushEntry({
-          command: trimmed,
-          type: 'html',
-          html: `命令未找到: <span style="color: var(--red)">${cmdName}</span>。输入 <span style="color: var(--green)">help</span> 查看可用命令。`,
-        })
+        // Check if it's the admin command (dynamic from config)
+        if (cmdName === adminConfig.command) {
+          pushEntry({
+            command: trimmed,
+            type: 'html',
+            html: `正在跳转到后台管理系统 <span style="color: var(--green)">${adminConfig.path}/login</span>...`,
+          })
+          setTimeout(() => {
+            window.location.href = adminConfig.path + '/login'
+          }, 300)
+        } else {
+          pushEntry({
+            command: trimmed,
+            type: 'html',
+            html: `命令未找到: <span style="color: var(--red)">${cmdName}</span>。输入 <span style="color: var(--green)">help</span> 查看可用命令。`,
+          })
+        }
     }
 
     command.value = ''

@@ -30,6 +30,11 @@ export interface SiteConfig {
   beian?: string
 }
 
+export interface AdminConfig {
+  path: string
+  command: string
+}
+
 export interface AboutData {
   avatar: string
   name: string

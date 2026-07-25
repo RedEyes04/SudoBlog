@@ -3,10 +3,13 @@
   "private": true,
   "scripts": {
     "dev:server": "cd server && npx tsx src/index.ts",
-    "dev:admin": "cd admin && npx vite",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build:admin": "cd admin && npx vite build",
-    "build:frontend": "cd frontend && npm run build",
-    "build": "npm run build:admin && npm run build:frontend"
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build"
+  },
+  "dependencies": {
+    "naive-ui": "^2.44.1"
+  },
+  "devDependencies": {
+    "unplugin-vue-components": "^32.1.0"
   }
 }

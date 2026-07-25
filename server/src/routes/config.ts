@@ -23,6 +23,7 @@ interface SiteConfig {
 interface ConfigData {
   site: SiteConfig
   asciiBanner: string
+  admin?: { path?: string; command?: string }
 }
 
 function readConfig(): ConfigData {
@@ -74,6 +75,11 @@ router.put('/', authMiddleware, (req, res) => {
     // Update ASCII banner
     if (typeof req.body.asciiBanner === 'string') {
       config.asciiBanner = req.body.asciiBanner
+    }
+
+    // Merge admin fields
+    if (req.body.admin) {
+      config.admin = { ...config.admin, ...req.body.admin }
     }
 
     writeConfig(config)

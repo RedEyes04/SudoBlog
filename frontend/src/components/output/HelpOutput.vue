@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { adminConfig } from '../../data/config'
 
 const allCommands = [
   { cmd: 'cd posts', desc: '进入文章目录' },
@@ -14,6 +15,7 @@ const allCommands = [
   { cmd: 'whoami', desc: '显示当前用户' },
   { cmd: 'date', desc: '显示当前日期时间' },
   { cmd: 'echo', desc: '输出文本到终端' },
+  { cmd: adminConfig.command, desc: '进入后台管理系统' },
   { cmd: 'help', desc: '显示此帮助信息' },
 ]
 

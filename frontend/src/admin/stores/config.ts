@@ -12,9 +12,15 @@ export interface SiteSettings {
   beian: string
 }
 
+export interface AdminSettings {
+  path?: string
+  command?: string
+}
+
 export interface ConfigData {
   site: SiteSettings
   asciiBanner: string
+  admin?: AdminSettings
 }
 
 export const useConfigStore = defineStore('config', () => {
