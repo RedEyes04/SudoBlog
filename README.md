@@ -1,4 +1,4 @@
-<img src="public/images/sudoblog-logo.png" alt="SudoBlog" width="100%" />
+<img width="300" height="64" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
 
 # SudoBlog
 
