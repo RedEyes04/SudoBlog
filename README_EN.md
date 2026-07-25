@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img width="300" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
+  <img width="3018" height="1494" alt="PixPin_2026-07-25_16-50-07" src="https://github.com/user-attachments/assets/6bfb1eed-79b1-464e-8741-301466584d78" />
 </p>
 
 A terminal-styled personal blog with an admin dashboard. Visitors navigate via commands, while the admin panel provides a visual editor, image management, and friend-link moderation.
@@ -19,7 +19,7 @@ Vue 3 + Express, no database — posts are Markdown files, config is JSON. Desig
 <details open>
 <summary><b>Visitor — terminal blog</b></summary>
 <br />
-<img alt="visitor" src="https://github.com/user-attachments/assets/6669b80b-cc2f-49ac-94c8-74bba7c1c42f" />
+<img width="3018" height="1494" alt="PixPin_2026-07-25_16-50-07" src="https://github.com/user-attachments/assets/6bfb1eed-79b1-464e-8741-301466584d78" />
 </details>
 
 <details>
