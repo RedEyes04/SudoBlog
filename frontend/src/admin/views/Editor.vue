@@ -72,9 +72,24 @@
     </div>
 
     <!-- Image modal -->
-    <n-modal v-model:show="imgShow" preset="card" title="插入图片" style="width:400px">
-      <n-input v-model:value="imgUrl" placeholder="图片 URL" @keyup.enter="imgInsert" />
-      <template #footer><n-space><n-button @click="imgShow=false">取消</n-button><n-button type="primary" @click="imgInsert">插入</n-button></n-space></template>
+    <n-modal v-model:show="imgShow" preset="card" title="插入图片" style="width:420px">
+      <n-tabs v-model:value="imgTab" type="segment" size="small">
+        <n-tab-pane name="upload" tab="本地上传">
+          <n-upload
+            :action="uploadUrl"
+            :headers="uploadHeaders"
+            :on-finish="imgUploaded"
+            :show-file-list="false"
+            accept="image/*"
+          >
+            <n-button>选择文件</n-button>
+          </n-upload>
+        </n-tab-pane>
+        <n-tab-pane name="url" tab="URL">
+          <n-input v-model:value="imgUrl" placeholder="https://..." @keyup.enter="imgInsert" />
+        </n-tab-pane>
+      </n-tabs>
+      <template #footer><n-space><n-button @click="imgShow=false">取消</n-button><n-button v-if="imgTab==='url'" type="primary" @click="imgInsert">插入</n-button></n-space></template>
     </n-modal>
   </div>
 </template>
@@ -107,6 +122,36 @@ const editor = useEditor({
   extensions: [StarterKit.configure({codeBlock:false}),Image.configure({inline:false}),Placeholder.configure({placeholder:'开始写作…'})],
   content:'',
   onUpdate:({editor:ed})=>{ form.content = ed.getHTML() },
+  editorProps: {
+    handlePaste: (_view, event) => {
+      const text = event.clipboardData?.getData('text/plain') || ''
+      const imgMatch = text.match(/!\[.*?\]\((https?:\/\/\S+)\)/)
+      if (imgMatch) {
+        editor.value?.chain().focus().setImage({ src: imgMatch[1] }).run()
+        return true
+      }
+      const urlMatch = text.match(/^(https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp|svg))$/im)
+      if (urlMatch) {
+        editor.value?.chain().focus().setImage({ src: urlMatch[1] }).run()
+        return true
+      }
+      return false
+    },
+    handleDrop: (_view, event) => {
+      const files = event.dataTransfer?.files
+      if (files?.length) {
+        for (const f of files) {
+          if (f.type.startsWith('image/')) {
+            const fd = new FormData(); fd.append('file', f)
+            fetch('/api/upload', { method:'POST', body:fd, headers:{ Authorization: `Bearer ${localStorage.getItem('admin_token')||''}` } })
+              .then(r => r.json()).then(d => { editor.value?.chain().focus().setImage({ src: d.url }).run() })
+          }
+        }
+        return true
+      }
+      return false
+    },
+  },
 })
 
 watch(()=>form.content, v=>{ if(editor.value&&editor.value.getHTML()!==v) editor.value.commands.setContent(v) })
@@ -135,9 +180,12 @@ const tools = [
 function active(b:any) { return b.on && editor.value ? b.on(editor.value) : false }
 function run(b:any) { if (b.fn && editor.value) b.fn(editor.value) }
 
-const imgShow = ref(false), imgUrl = ref('')
-function imgOpen(){ imgUrl.value=''; imgShow.value=true }
+const imgShow = ref(false), imgUrl = ref(''), imgTab = ref('upload')
+const uploadUrl = '/api/upload'
+const uploadHeaders = computed(() => ({ Authorization: `Bearer ${localStorage.getItem('admin_token')||''}` }))
+function imgOpen(){ imgUrl.value=''; imgTab.value='upload'; imgShow.value=true }
 function imgInsert(){ if(imgUrl.value&&editor.value){ editor.value.chain().focus().setImage({src:imgUrl.value}).run(); imgShow.value=false } }
+function imgUploaded({ file }: any) { const e = file.response; if (e?.url && editor.value) { editor.value.chain().focus().setImage({ src: e.url }).run(); imgShow.value = false } }
 
 async function save(status:'publish'|'draft') {
   if(!form.title.trim()){ message.warning('请输入文章标题'); return }

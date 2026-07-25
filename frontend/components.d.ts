@@ -37,6 +37,7 @@ declare module 'vue' {
     NSpace: typeof import('naive-ui')['NSpace']
     NTabPane: typeof import('naive-ui')['NTabPane']
     NTabs: typeof import('naive-ui')['NTabs']
+    NUpload: typeof import('naive-ui')['NUpload']
     PostDetail: typeof import('./src/components/output/PostDetail.vue')['default']
     PostsList: typeof import('./src/components/output/PostsList.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
