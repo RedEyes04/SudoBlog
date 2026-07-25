@@ -100,7 +100,8 @@ router.post('/ascii', authMiddleware, (req, res) => {
       return
     }
 
-    figlet.text(text, { font } as figlet.Options, (err, result) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    figlet.text(text, { font } as any, (err, result) => {
       if (err) {
         res.status(400).json({ error: `Failed to generate: ${err.message}` })
         return

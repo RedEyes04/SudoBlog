@@ -1,0 +1,19 @@
+services:
+  sudoblog-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: sudoblog-server
+    ports:
+      - "${PORT:-3456}:3456"
+    environment:
+      - PORT=3456
+      - JWT_SECRET=${JWT_SECRET:-change-me-to-a-random-string}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-}
+      - POSTS_DIR=/posts
+    volumes:
+      - ./posts:/posts
+      - ./data:/data
+      - ./public/images:/public/images
+    restart: unless-stopped

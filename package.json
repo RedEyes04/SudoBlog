@@ -2,9 +2,13 @@
   "name": "sudoblog",
   "private": true,
   "scripts": {
-    "dev:server": "cd server && npx tsx src/index.ts",
+    "dev:server": "cd server && npm run dev",
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build"
+    "build": "cd frontend && npm run build",
+    "docker:build": "cd server && docker build -t sudoblog-server .",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:push": "docker tag sudoblog-server ${ACR_REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${ACR_NAMESPACE:-sudoblog}/sudoblog:latest && docker push ${ACR_REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${ACR_NAMESPACE:-sudoblog}/sudoblog:latest"
   },
   "dependencies": {
     "naive-ui": "^2.44.1"
