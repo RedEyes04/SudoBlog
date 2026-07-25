@@ -8,11 +8,9 @@
   <img width="300" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
 </p>
 
-A terminal-styled personal blog with an admin dashboard. Visitors browse posts by typing commands like `ls` and `cat`, while the admin panel provides a visual editor, image management, and friend-link moderation.
+A terminal-styled personal blog with an admin dashboard. Visitors navigate via commands, while the admin panel provides a visual editor, image management, and friend-link moderation.
 
-Built with Vue 3 and Express. No database — posts are Markdown files, config is JSON.
-
-Design inspired by [LiveTerm](https://github.com/Cveinnt/LiveTerm).
+Vue 3 + Express, no database — posts are Markdown files, config is JSON. Design inspired by [LiveTerm](https://github.com/Cveinnt/LiveTerm).
 
 ---
 
@@ -32,26 +30,49 @@ Design inspired by [LiveTerm](https://github.com/Cveinnt/LiveTerm).
 
 ---
 
-## Features
-
-**Visitor side**
+## Visitor Commands
 
 | Command | Description |
-|---------|-------------|
-| `ls` | List all published posts |
-| `cat <slug>` | Read a post |
-| `about` | About page |
-| `friends` | View friend links |
-| `help` / `clear` / `whoami` | Utility commands |
+|------|------|
+| `help` | Show all available commands |
+| `ls` | List current directory (root shows posts/, about.md, friends.md) |
+| `cd posts` | Enter the posts directory and browse |
+| `cd ..` | Go back to parent directory |
+| `vim <slug>` | Open a post by its slug |
+| `vim about.md` | View the about page |
+| `vim friends.md` | View friend links |
+| `:wq` | Exit current view (post / about / friends) |
+| `clear` | Clear screen (or Ctrl+L) |
+| `banner` | Redisplay the welcome banner |
+| `whoami` | Show current username |
+| `date` | Show current date and time |
+| `echo <text>` | Print text to terminal |
+| `admin` | Jump to admin dashboard (command name is configurable) |
 
-Terminal behavior: typewriter effect, tab completion, command history with arrow keys.
+Tab completion and arrow-key history are supported, with typewriter animation on output.
 
-**Admin panel**
+### Entering the Admin Panel
 
-- Rich-text editor based on TipTap — drag and drop images, paste Markdown
-- Image management — grid view with preview, categorized by published / draft / unused, batch delete
-- Friend-link system — public application form, approve or reject in admin
-- Site settings — change site title, ASCII banner, admin credentials
+Type `admin` (default; configurable in `data/config.json`) in the terminal. The system redirects to the admin login page.
+
+```json
+// data/config.json
+{
+  "admin": {
+    "path": "/admin",      // Admin URL path
+    "command": "admin"     // Trigger command
+  }
+}
+```
+
+---
+
+## Admin Features
+
+- Post editor — TipTap WYSIWYG, drag-and-drop image upload, Markdown paste
+- Image management — grid preview, filter by published / draft / unused, batch delete
+- Friend links — add links, review applications (approve / reject)
+- Site settings — edit title, ASCII banner, admin credentials
 
 ---
 
@@ -67,7 +88,7 @@ cd SudoBlog
 cd server
 cp .env.example .env
 npm install
-npx tsx src/generate-hash.ts <your-password>   # paste the output into .env
+npx tsx src/generate-hash.ts <your-password>   # paste output into .env
 npm run dev                                     # localhost:3456
 
 # Frontend (new terminal)
@@ -79,9 +100,32 @@ npm run dev                                     # localhost:5173
 | | URL |
 |------|------|
 | Blog | `http://localhost:5173` |
-| Admin | `http://localhost:5173/admin` |
+| Admin | `http://localhost:5173/admin` (or type `admin` in terminal) |
 
-The same Vue application serves both the blog and the admin panel — `main.ts` checks the URL and mounts the appropriate app.
+A single Vue application serves both blog and admin — `main.ts` checks the URL and mounts the appropriate app.
+
+---
+
+## Build
+
+```bash
+# Build frontend
+cd frontend
+npm run build        # Output to frontend/dist/
+
+# Build output:
+# frontend/dist/
+#   ├── index.html          # Blog entry
+#   ├── admin/index.html    # Admin entry
+#   ├── images/             # Static images
+#   └── assets/             # JS/CSS bundles
+```
+
+For production:
+1. Serve static files with Nginx or a CDN
+2. Run the server with PM2 or systemd
+3. Proxy `/api` and `/images` to backend `localhost:3456`
+4. Route `/admin` to `dist/admin/index.html`
 
 ---
 
@@ -92,49 +136,38 @@ The same Vue application serves both the blog and the admin panel — `main.ts` 
 │   ├── admin/          # Admin SPA — router, Pinia stores, views
 │   ├── components/     # Terminal UI components
 │   └── composables/    # useTerminal core logic
-├── server/src/routes/  # Express route modules
-├── posts/              # Blog posts — Markdown files
-├── data/               # Site config and friend links — JSON files
+├── server/src/routes/  # Express routes
+├── posts/              # Blog posts — Markdown
+├── data/               # Config & friends — JSON
 └── public/images/      # Uploaded images
 ```
-
-No database. Posts are `.md` files with YAML frontmatter. Config and data are `.json` files.
 
 ---
 
 ## API
 
-Authentication uses JWT. Protected endpoints require a Bearer token — the admin panel attaches it automatically after login.
+JWT authentication. Protected endpoints require a Bearer token.
 
 ```
-Auth
-  POST   /api/auth/login           Log in
-  PUT    /api/auth/credentials      Change credentials
-
-Posts
-  GET    /api/posts                 List posts
-  POST   /api/posts                 Create post
-  GET    /api/posts/:id             Get post
-  PUT    /api/posts/:id             Update post
-  DELETE /api/posts/:id             Delete post
-
-Images
-  POST   /api/upload                Upload image (multipart)
-  GET    /api/images                List images with usage info
-  DELETE /api/images/:filename      Delete image
-  POST   /api/images/batch-delete   Batch delete
-
-Friends
-  GET    /api/friends               Public friend list
-  POST   /api/friends               Add friend
-  POST   /api/friends/apply         Submit application
-  PUT    /api/friends/:id           Edit or review
-  DELETE /api/friends/:id           Remove
-
-Config
-  GET    /api/config                Get site config
-  PUT    /api/config                Update site config
-  POST   /api/config/ascii          Generate ASCII art
+POST   /api/auth/login           Log in
+PUT    /api/auth/credentials      Change credentials
+GET    /api/posts                 List posts
+POST   /api/posts                 Create post
+GET    /api/posts/:id             Get post
+PUT    /api/posts/:id             Update post
+DELETE /api/posts/:id             Delete post
+POST   /api/upload                Upload image
+GET    /api/images                List images (with usage info)
+DELETE /api/images/:filename      Delete image
+POST   /api/images/batch-delete   Batch delete
+GET    /api/friends               Friend list
+POST   /api/friends               Add friend
+POST   /api/friends/apply         Submit application
+PUT    /api/friends/:id           Review
+DELETE /api/friends/:id           Remove
+GET    /api/config                Site config
+PUT    /api/config                Update config
+POST   /api/config/ascii          Generate ASCII art
 ```
 
 ---
@@ -145,12 +178,8 @@ Vue 3 / TypeScript / Vite / Pinia / Vue Router / Naive UI / TipTap / Express / g
 
 ---
 
-## License
-
 MIT
 
 ---
 
-## Credits
-
-Terminal design inspired by [Cveinnt/LiveTerm](https://github.com/Cveinnt/LiveTerm), which is based on [M4TT72/Terminal](https://github.com/m4tt72/terminal).
+Credits: terminal design inspired by [Cveinnt/LiveTerm](https://github.com/Cveinnt/LiveTerm), based on [M4TT72/Terminal](https://github.com/m4tt72/terminal).
