@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img width="300" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
+  <img width="3018" height="1494" alt="PixPin_2026-07-25_16-50-07" src="https://github.com/user-attachments/assets/6bfb1eed-79b1-464e-8741-301466584d78" />
 </p>
 
 终端风格的个人博客系统，带后台管理面板。访客通过命令浏览内容，后台提供可视化编辑器、图片管理和友链审核。
