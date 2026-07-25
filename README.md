@@ -19,7 +19,7 @@ Vue 3 + Express，无数据库 —— 文章存 Markdown，配置存 JSON。设�
 <details open>
 <summary><b>访客端 — 终端博客</b></summary>
 <br />
-<img alt="visitor" src="https://github.com/user-attachments/assets/6669b80b-cc2f-49ac-94c8-74bba7c1c42f" />
+<img width="3018" height="1494" alt="PixPin_2026-07-25_16-50-07" src="https://github.com/user-attachments/assets/6bfb1eed-79b1-464e-8741-301466584d78" />
 </details>
 
 <details>
