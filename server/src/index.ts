@@ -10,6 +10,7 @@ import postsRoutes from './routes/posts.js'
 import uploadRoutes from './routes/upload.js'
 import friendsRoutes from './routes/friends.js'
 import configRoutes from './routes/config.js'
+import imagesRoutes from './routes/images.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -30,7 +31,7 @@ app.use('/api/posts', postsRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/friends', friendsRoutes)
 app.use('/api/config', configRoutes)
-
+app.use('/api/images', imagesRoutes)
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' })

@@ -27,16 +27,6 @@
     "status": "approved"
   },
   {
-    "id": "test-friend",
-    "name": "Test Friend",
-    "url": "https://test.com",
-    "avatar": "",
-    "description": "A test",
-    "thumbnail": "",
-    "status": "approved",
-    "createdAt": "2026-07-24T08:50:39.502Z"
-  },
-  {
     "id": "redeyes",
     "name": "REDEYESの终端",
     "url": "https://www.redeyes.top/",

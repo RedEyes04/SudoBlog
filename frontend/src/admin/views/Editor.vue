@@ -81,6 +81,7 @@
             :on-finish="imgUploaded"
             :show-file-list="false"
             accept="image/*"
+            response-type="json"
           >
             <n-button>选择文件</n-button>
           </n-upload>
@@ -185,7 +186,14 @@ const uploadUrl = '/api/upload'
 const uploadHeaders = computed(() => ({ Authorization: `Bearer ${localStorage.getItem('admin_token')||''}` }))
 function imgOpen(){ imgUrl.value=''; imgTab.value='upload'; imgShow.value=true }
 function imgInsert(){ if(imgUrl.value&&editor.value){ editor.value.chain().focus().setImage({src:imgUrl.value}).run(); imgShow.value=false } }
-function imgUploaded({ file }: any) { const e = file.response; if (e?.url && editor.value) { editor.value.chain().focus().setImage({ src: e.url }).run(); imgShow.value = false } }
+function imgUploaded({ event }: any) {
+  // Naive UI passes the XHR event; response is on event.target
+  const data = event?.target?.response
+  if (data?.url && editor.value) {
+    editor.value.chain().focus().setImage({ src: data.url }).run()
+    imgShow.value = false
+  }
+}
 
 async function save(status:'publish'|'draft') {
   if(!form.title.trim()){ message.warning('请输入文章标题'); return }

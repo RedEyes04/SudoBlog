@@ -45,6 +45,11 @@ export function createAdminRouter(basePath: string) {
             component: () => import('../views/Applications.vue'),
           },
           {
+            path: 'images',
+            name: 'ImagesManage',
+            component: () => import('../views/Images.vue'),
+          },
+          {
             path: 'settings',
             name: 'Settings',
             component: () => import('../views/Settings.vue'),
