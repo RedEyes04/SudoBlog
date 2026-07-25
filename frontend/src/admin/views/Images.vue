@@ -3,6 +3,7 @@
     <div class="pg-head">
       <h2>图片管理</h2>
       <div class="pg-head-actions">
+        <n-checkbox v-if="store.images.length" :checked="allSelected" :indeterminate="someSelected && !allSelected" @update:checked="toggleSelectAll" style="margin-right:4px" />
         <span class="count" v-if="store.images.length">{{ store.images.length }} 张图片</span>
         <n-upload
           :action="uploadUrl"
@@ -19,16 +20,66 @@
       </div>
     </div>
 
-    <n-empty v-if="!store.loading && store.images.length === 0" description="暂无上传的图片" style="margin-top:80px" />
+    <!-- Sub-nav -->
+    <n-card class="subnav-card" size="small">
+      <n-tabs
+        v-model:value="store.filter"
+        type="bar"
+        size="large"
+        animated
+      >
+        <n-tab-pane name="all" :tab="`全部照片 (${store.images.length})`" />
+        <n-tab-pane name="published" :tab="`文章 (${store.publishedImages.length})`" />
+        <n-tab-pane name="draft" :tab="`草稿 (${store.draftImages.length})`" />
+        <n-tab-pane name="unused" :tab="`未使用 (${store.unusedImages.length})`" />
+      </n-tabs>
+    </n-card>
+
+    <!-- Batch toolbar -->
+    <div class="batch-bar" v-if="selected.size > 0">
+      <span class="batch-count">已选 {{ selected.size }} 张</span>
+      <n-button size="small" quaternary @click="selected.clear()">取消选择</n-button>
+      <n-popconfirm @positive-click="batchDel">
+        <template #trigger>
+          <n-button size="small" type="error">批量删除</n-button>
+        </template>
+        确定删除选中的 {{ selected.size }} 张图片？
+      </n-popconfirm>
+    </div>
+
+    <n-empty v-if="!store.loading && store.filteredImages.length === 0" :description="emptyDesc" style="margin-top:80px" />
 
     <div class="grid" v-else>
-      <div class="img-card" v-for="img in store.images" :key="img.filename">
+      <div
+        class="img-card"
+        :class="{ selected: selected.has(img.filename) }"
+        v-for="img in store.filteredImages"
+        :key="img.filename"
+      >
+        <div class="img-check">
+          <n-checkbox :checked="selected.has(img.filename)" @update:checked="() => toggleSelect(img.filename)" />
+        </div>
         <div class="img-thumb" @click="previewImg(img.url)">
           <img :src="img.url" :alt="img.filename" loading="lazy" />
         </div>
         <div class="img-info">
           <div class="img-name" :title="img.filename">{{ img.filename }}</div>
           <div class="img-meta">{{ formatSize(img.size) }}</div>
+        </div>
+        <!-- Usage badges -->
+        <div class="img-usage" v-if="img.usedBy.length">
+          <n-tag
+            v-for="u in img.usedBy"
+            :key="u.slug"
+            size="tiny"
+            :bordered="false"
+            :type="u.status === 'publish' ? 'success' : 'warning'"
+          >
+            {{ u.status === 'publish' ? '文章' : '草稿' }}:{{ u.title }}
+          </n-tag>
+        </div>
+        <div class="img-usage img-unused" v-else>
+          <n-tag size="tiny" :bordered="false" type="default">未使用</n-tag>
         </div>
         <div class="img-actions">
           <n-button size="tiny" quaternary @click="copyUrl(img.url)">
@@ -53,7 +104,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { NButton, NPopconfirm } from 'naive-ui'
+import { NButton, NPopconfirm, NCheckbox, NTag, NTabs, NTabPane, NCard } from 'naive-ui'
 import { useMessage } from 'naive-ui'
 import { useImagesStore } from '../stores/images'
 import { useAuthStore } from '../stores/auth'
@@ -64,6 +115,17 @@ const message = useMessage()
 
 const preview = ref('')
 const showPreview = ref(false)
+const selected = ref<Set<string>>(new Set())
+
+const allSelected = computed(() => store.images.length > 0 && selected.value.size === store.images.length)
+const someSelected = computed(() => selected.value.size > 0)
+
+const emptyDesc = computed(() => {
+  if (store.filter === 'unused') return '所有图片都在使用中'
+  if (store.filter === 'draft') return '没有草稿中使用的图片'
+  if (store.filter === 'published') return '没有文章中使用的图片'
+  return '暂无上传的图片'
+})
 
 const uploadUrl = '/api/upload'
 const uploadHeaders = computed(() => ({
@@ -73,6 +135,24 @@ const uploadHeaders = computed(() => ({
 function onUploaded() {
   store.fetchImages()
   message.success('上传成功')
+}
+
+function toggleSelect(filename: string) {
+  const s = selected.value
+  if (s.has(filename)) {
+    s.delete(filename)
+  } else {
+    s.add(filename)
+  }
+  selected.value = new Set(s)
+}
+
+function toggleSelectAll(checked: boolean) {
+  if (checked) {
+    selected.value = new Set(store.images.map((i) => i.filename))
+  } else {
+    selected.value = new Set()
+  }
 }
 
 async function copyUrl(url: string) {
@@ -87,9 +167,22 @@ async function copyUrl(url: string) {
 async function del(filename: string) {
   try {
     await store.deleteImage(filename)
+    selected.value.delete(filename)
+    selected.value = new Set(selected.value)
     message.success('已删除')
   } catch {
     message.error('删除失败')
+  }
+}
+
+async function batchDel() {
+  try {
+    const filenames = [...selected.value]
+    await store.batchDeleteImages(filenames)
+    selected.value = new Set()
+    message.success(`已删除 ${filenames.length} 张图片`)
+  } catch {
+    message.error('批量删除失败')
   }
 }
 
@@ -112,11 +205,26 @@ onMounted(() => store.fetchImages())
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .pg-head h2 { margin: 0; font-size: 18px; font-weight: 600; color: #1a1a1a; }
 .pg-head-actions { display: flex; align-items: center; gap: 12px; }
 .count { color: #888; font-size: 13px; }
+
+.subnav-card { margin-bottom: 14px; border-radius: 10px; }
+.subnav-card :deep(.n-card__content) { padding: 0 10px; }
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.batch-count { font-size: 13px; color: #666; flex: 1; }
 
 .grid {
   display: grid;
@@ -125,16 +233,29 @@ onMounted(() => store.fetchImages())
 }
 
 .img-card {
+  position: relative;
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #eee;
-  transition: box-shadow 0.15s;
+  border: 2px solid #eee;
+  transition: box-shadow 0.15s, border-color 0.15s;
 }
 .img-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.img-card.selected { border-color: #333; }
+
+.img-check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.img-card:hover .img-check,
+.img-card.selected .img-check { opacity: 1; }
 
 .img-thumb {
-  height: 150px;
+  height: 140px;
   background: #f0f0f0;
   cursor: pointer;
   overflow: hidden;
@@ -150,9 +271,12 @@ onMounted(() => store.fetchImages())
 }
 .img-thumb:hover img { transform: scale(1.05); }
 
-.img-info { padding: 10px 14px 4px; }
+.img-info { padding: 10px 14px 2px; }
 .img-name { font-size: 12px; color: #333; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .img-meta { font-size: 11px; color: #999; margin-top: 2px; }
 
-.img-actions { padding: 4px 14px 12px; display: flex; gap: 8px; }
+.img-usage { padding: 6px 14px 2px; display: flex; flex-wrap: wrap; gap: 4px; }
+.img-unused { padding-top: 6px; }
+
+.img-actions { padding: 8px 14px 12px; display: flex; gap: 8px; }
 </style>
