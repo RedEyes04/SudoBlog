@@ -1,208 +1,169 @@
-<img width="300" height="64" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
+<p align="center">
+  <img width="300" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
+</p>
 
-# SudoBlog
-访客端
-<img width="3024" height="1494" alt="PixPin_2026-07-25_16-21-11" src="https://github.com/user-attachments/assets/6669b80b-cc2f-49ac-94c8-74bba7c1c42f" />
-后台端
-<img width="3024" height="1494" alt="PixPin_2026-07-25_16-21-25" src="https://github.com/user-attachments/assets/911d1342-fe8e-4bb5-b330-11cfac2c0f35" />
+<p align="center">
+  <img alt="GitHub License" src="https://img.shields.io/github/license/REDEYES/SudoBlog?style=flat&color=6366f1" />
+  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/REDEYES/SudoBlog?style=flat&color=f59e0b" />
+  <br />
+  <strong>一个在浏览器里运行的终端风格博客系统</strong><br />
+  输入命令来浏览文章、查看友链、了解作者。
+</p>
 
+---
 
+## 📸 预览
 
-> 一个命令行终端风格的个人博客系统，灵感来自 `sudo` 命令。  
-> 在浏览器里打开一个 Terminal，输入命令来浏览文章、查看友链、了解作者。
+<details open>
+<summary><b>访客端</b> — 命令行交互式博客</summary>
+<br />
+<img alt="访客端截图" src="https://github.com/user-attachments/assets/6669b80b-cc2f-49ac-94c8-74bba7c1c42f" />
+</details>
+
+<details>
+<summary><b>后台管理</b> — 可视化内容管理</summary>
+<br />
+<img alt="后台端截图" src="https://github.com/user-attachments/assets/911d1342-fe8e-4bb5-b330-11cfac2c0f35" />
+</details>
+
+---
+
+## 💡 为什么做这个
+
+传统的博客系统千篇一律——列表页、详情页、侧边栏。SudoBlog 用终端模拟器的方式重新思考了个人博客：访客像操作命令行一样输入 `ls`、`cat`、`help` 来探索内容，打字机效果逐字渲染，就像在真实的终端里和作者对话。
+
+后台管理也保持了克制的设计——没有臃肿的 CMS，没有数据库，文章用 Markdown 文件存储，图片拖拽上传，所见即所得编辑，开箱即用。
 
 ---
 
 ## ✨ 特性
 
-- **终端交互体验** — 命令输入、打字机效果、history 回溯，像真正的终端一样操作
-- **双模式单应用** — 前台博客 + 后台管理共用一套前端代码，根据 URL 自动切换
-- **所见即所得编辑器** — 基于 TipTap 的富文本编辑器，支持 Markdown 粘贴、拖拽上传图片
-- **图片管理中心** — 上传、预览、复制 URL、批量删除，按文章/草稿/未使用分类筛选
-- **友链系统** — 支持友链申请 → 审核 → 展示的完整流程
-- **ASCII 艺术** — 后台内置 ASCII 文字生成器，自定义终端 Banner
-- **文件型数据库** — 文章存储为 Markdown 文件，配置和数据用 JSON，零依赖数据库
+<table>
+<tr>
+<td width="50%">
 
----
+**🖥️ 终端交互**
+- 命令解析 + 自动补全
+- 打字机逐字渲染
+- Tab 切换、history 回溯
+- `ls` `cat` `about` `friends` `clear` `help`
 
-## 🏗️ 项目结构
+**✍️ 文章编辑**
+- TipTap 所见即所得
+- Markdown 粘贴自动转换
+- 拖拽 / 粘贴上传图片
+- 封面图 + 标签 + 摘要
 
-```
-SudoBlog/
-├── frontend/               # Vue 3 + Vite（前台 + 后台）
-│   └── src/
-│       ├── main.ts         # 入口：根据 URL 挂载前台或后台
-│       ├── App.vue         # 前台根组件
-│       ├── components/     # 终端 UI 组件（命令行、文章渲染等）
-│       ├── composables/    # useTerminal（核心终端逻辑）
-│       ├── data/           # 构建时从 /data 和 /posts 同步的数据
-│       ├── types/          # TypeScript 类型定义
-│       └── admin/          # 后台管理 SPA
-│           ├── AdminApp.vue
-│           ├── mount.ts    # 后台应用挂载入口
-│           ├── api/        # Axios 实例 + 拦截器
-│           ├── router/     # Vue Router + 登录守卫
-│           ├── stores/     # Pinia Store（auth / posts / config / friends / images）
-│           ├── components/ # AdminLayout（侧边栏 + 顶栏）
-│           └── views/      # 页面：Dashboard / Editor / Posts / Images / Friends / Settings
-├── server/                 # Express API 服务
-│   └── src/
-│       ├── index.ts        # 应用入口 + 路由注册
-│       ├── middleware/      # JWT 认证中间件
-│       ├── routes/          # 路由模块
-│       │   ├── auth.ts      # 登录 / 修改密码
-│       │   ├── posts.ts     # 文章 CRUD
-│       │   ├── upload.ts    # 图片上传（multer）
-│       │   ├── images.ts    # 图片管理（列表 / 删除 / 批量删除）
-│       │   ├── friends.ts   # 友链 + 申请审核
-│       │   └── config.ts    # 站点配置 / ASCII 生成
-│       └── utils/           # slugify 等工具
-├── posts/                  # Markdown 文章（.md + YAML frontmatter）
-├── data/                   # JSON 数据文件（站点配置、友链）
-├── public/images/          # 上传的图片
-└── package.json            # 根 workspace 脚本
-```
+</td>
+<td width="50%">
+
+**🖼️ 图片管理**
+- 网格预览 + 放大查看
+- 一键复制 URL
+- 按「文章 / 草稿 / 未使用」分类
+- 批量选择和删除
+
+**🔗 友链系统**
+- 公开申请 → 后台审核
+- 头像 + 描述 + 缩略图
+- 通过 / 拒绝 / 删除
+
+</td>
+</tr>
+</table>
 
 ---
 
 ## 🚀 快速开始
 
-### 环境要求
-
-- **Node.js** >= 18
-- **npm** >= 9
-
-### 1. 启动后端
+> 需要 Node.js ≥ 18
 
 ```bash
+# 1. 克隆项目
+git clone https://github.com/REDEYES/SudoBlog.git
+cd SudoBlog
+
+# 2. 启动后端
 cd server
 cp .env.example .env
-
-# 生成密码哈希（替换 <your-password>）
-npx tsx src/generate-hash.ts <your-password>
-
-# 编辑 .env 填入哈希值和随机 JWT_SECRET
-# PORT=3456
-# JWT_SECRET=<随机字符串>
-# ADMIN_USERNAME=admin
-# ADMIN_PASSWORD_HASH=<上一步的输出>
-# POSTS_DIR=../posts
-
 npm install
-npm run dev
-```
+npx tsx src/generate-hash.ts <你的密码>   # 复制哈希到 .env 的 ADMIN_PASSWORD_HASH
+npm run dev                                # → http://localhost:3456
 
-后端运行在 `http://localhost:3456`。
-
-### 2. 启动前端
-
-```bash
+# 3. 启动前端（新终端窗口）
 cd frontend
 npm install
-npm run dev
+npm run dev                                # → http://localhost:5173
 ```
 
-前端运行在 `http://localhost:5173`。
-
-### 3. 访问
-
-| 地址 | 页面 |
+| 入口 | 地址 |
 |------|------|
-| `http://localhost:5173` | 前台终端博客 |
-| `http://localhost:5173/admin` | 后台管理登录 |
-| `http://localhost:3456/api/health` | 后端健康检查 |
-
-默认管理员用户名：`admin`
+| 前台博客 | `http://localhost:5173` |
+| 后台管理 | `http://localhost:5173/admin` |
 
 ---
 
-## 🔧 根目录快捷命令
+## 🏗️ 架构
 
-```bash
-npm run dev          # 启动前端
-npm run dev:server   # 启动后端
-npm run build        # 构建前端（用于部署）
+```
+Sudoblog/
+├── frontend/src/
+│   ├── admin/           # 后台 SPA（Vue Router + Pinia + Naive UI）
+│   │   ├── views/       # Login / Dashboard / Editor / Posts / Images / Friends / Settings
+│   │   ├── stores/      # auth / posts / config / friends / images
+│   │   └── router/      # 路由 + JWT 登录守卫
+│   ├── components/      # 终端 UI 组件（命令行、文章渲染）
+│   └── composables/     # useTerminal 核心逻辑
+├── server/src/
+│   ├── routes/           # auth / posts / upload / images / friends / config
+│   └── middleware/       # JWT 认证
+├── posts/                # 📝 Markdown 文章
+├── data/                 # 📋 JSON 配置
+└── public/images/        # 🖼️ 上传图片
 ```
 
----
-
-## 📡 API 接口
-
-### 认证
-
-| 方法 | 路径 | 认证 | 说明 |
-|------|------|------|------|
-| `POST` | `/api/auth/login` | ❌ | 登录，返回 JWT |
-| `PUT` | `/api/auth/credentials` | ✅ | 修改管理员用户名/密码 |
-
-### 文章
-
-| 方法 | 路径 | 认证 | 说明 |
-|------|------|------|------|
-| `GET` | `/api/posts` | ❌ | 文章列表（元数据） |
-| `GET` | `/api/posts/:id` | ❌ | 文章详情（含正文） |
-| `POST` | `/api/posts` | ✅ | 创建文章 |
-| `PUT` | `/api/posts/:id` | ✅ | 更新文章 |
-| `DELETE` | `/api/posts/:id` | ✅ | 删除文章 |
-
-### 图片
-
-| 方法 | 路径 | 认证 | 说明 |
-|------|------|------|------|
-| `POST` | `/api/upload` | ✅ | 上传图片 |
-| `GET` | `/api/images` | ✅ | 图片列表（含使用情况） |
-| `DELETE` | `/api/images/:filename` | ✅ | 删除单张图片 |
-| `POST` | `/api/images/batch-delete` | ✅ | 批量删除图片 |
-| `GET` | `/images/*` | ❌ | 静态文件服务 |
-
-### 友链
-
-| 方法 | 路径 | 认证 | 说明 |
-|------|------|------|------|
-| `GET` | `/api/friends` | ❌ | 已通过友链列表 |
-| `GET` | `/api/friends/applications` | ✅ | 全部友链（含待审核） |
-| `POST` | `/api/friends` | ✅ | 手动添加友链 |
-| `POST` | `/api/friends/apply` | ❌ | 提交友链申请 |
-| `PUT` | `/api/friends/:id` | ✅ | 编辑 / 审核（通过/拒绝） |
-| `DELETE` | `/api/friends/:id` | ✅ | 删除友链 |
-
-### 配置
-
-| 方法 | 路径 | 认证 | 说明 |
-|------|------|------|------|
-| `GET` | `/api/config` | ❌ | 获取站点配置 |
-| `PUT` | `/api/config` | ✅ | 更新站点配置 |
-| `POST` | `/api/config/ascii` | ✅ | 生成 ASCII 艺术字 |
+**核心思路**：同一个 Vue 应用，`main.ts` 根据 URL 判断挂载前台还是后台，共用一套依赖和构建流程。没有数据库——文章是 `.md` 文件，配置是 `.json` 文件。
 
 ---
 
-## 📝 文章格式
+## 📡 API
 
-文章存储在 `posts/` 目录下，Markdown + YAML frontmatter：
-
-```yaml
----
-title: 我的第一篇文章
-date: 2026-07-25
-subtitle: 可选副标题
-summary: 一句话摘要
-tags:
-  - Vue
-  - TypeScript
-cover: /images/my-cover.jpg
-status: publish    # publish | draft
----
-
-## 正文内容（HTML，由 TipTap 编辑器生成）
-```
+| 分类 | 端点 | 方法 | 说明 |
+|------|------|------|------|
+| 🔐 认证 | `/api/auth/login` | POST | 登录 |
+| | `/api/auth/credentials` | PUT | 修改密码 |
+| 📝 文章 | `/api/posts` | GET / POST | 列表 / 创建 |
+| | `/api/posts/:id` | GET / PUT / DELETE | 详情 / 更新 / 删除 |
+| 🖼️ 图片 | `/api/upload` | POST | 上传 |
+| | `/api/images` | GET | 列表（含使用情况） |
+| | `/api/images/:filename` | DELETE | 删除单张 |
+| | `/api/images/batch-delete` | POST | 批量删除 |
+| 🔗 友链 | `/api/friends` | GET / POST | 列表 / 添加 |
+| | `/api/friends/apply` | POST | 公开申请 |
+| | `/api/friends/:id` | PUT / DELETE | 审核 / 删除 |
+| ⚙️ 配置 | `/api/config` | GET / PUT | 站点配置 |
+| | `/api/config/ascii` | POST | ASCII 艺术生成 |
 
 ---
 
 ## 🛠️ 技术栈
 
-| 层 | 技术 |
-|-----|------|
-| 前台 | Vue 3, TypeScript, Vite 6, Composables |
-| 后台管理 | Vue 3, Pinia, Vue Router, Naive UI, TipTap |
-| 后端 | Express 4, JWT, bcryptjs, multer, gray-matter, figlet |
-| 数据 | Markdown 文件 + JSON 文件 |
+| 层 | 选型 |
+|------|------|
+| 前端框架 | Vue 3 + TypeScript |
+| 构建工具 | Vite 6 |
+| 状态管理 | Pinia |
+| 路由 | Vue Router 4 |
+| UI 组件 | Naive UI |
+| 富文本编辑 | TipTap (ProseMirror) |
+| 后端框架 | Express 4 |
+| 认证 | JWT + bcryptjs |
+| 文件上传 | multer |
+| Markdown | gray-matter |
+| 数据存储 | 文件系统（.md + .json） |
+
+---
+
+## 📄 License
+
+MIT
