@@ -1,6 +1,12 @@
 <img width="300" height="64" alt="sudoblog-logo" src="https://github.com/user-attachments/assets/a069d4c0-efeb-49e8-99be-246bed26b308" />
 
 # SudoBlog
+访客端
+<img width="3024" height="1494" alt="PixPin_2026-07-25_16-21-11" src="https://github.com/user-attachments/assets/6669b80b-cc2f-49ac-94c8-74bba7c1c42f" />
+后台端
+<img width="3024" height="1494" alt="PixPin_2026-07-25_16-21-25" src="https://github.com/user-attachments/assets/911d1342-fe8e-4bb5-b330-11cfac2c0f35" />
+
+
 
 > 一个命令行终端风格的个人博客系统，灵感来自 `sudo` 命令。  
 > 在浏览器里打开一个 Terminal，输入命令来浏览文章、查看友链、了解作者。
