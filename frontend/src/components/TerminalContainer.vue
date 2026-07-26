@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, watch, ref, nextTick, type Component } from 'vue'
 import { useTerminal } from '../composables/useTerminal'
-import { posts as postsData } from '../data/posts'
-import { friends as friendsData } from '../data/friends'
+import { posts } from '../data/posts'
+import { friends } from '../data/friends'
 import { aboutData, siteConfig } from '../data/config'
 import type { OutputComponentName } from '../types'
 import TerminalHistory from './TerminalHistory.vue'
@@ -24,6 +24,8 @@ const {
   currentPost,
   tabHints,
   fullscreenOutputs,
+  loading,
+  loadData,
   executeCommand,
   selectPost,
   recallHistory,
@@ -46,8 +48,9 @@ const componentMap: Record<OutputComponentName, Component> = {
   HelpOutput,
 }
 
-onMounted(() => {
-  if (!restoreFromHash()) {
+onMounted(async () => {
+  await loadData()
+  if (!(await restoreFromHash())) {
     showBanner()
     executeCommand('help')
   }
@@ -81,7 +84,7 @@ function onKeyNav(direction: 'up' | 'down') {
       postListSelectedIndex.value--
     }
   } else {
-    if (postListSelectedIndex.value < postsData.length - 1) {
+    if (postListSelectedIndex.value < posts.value.length - 1) {
       postListSelectedIndex.value++
     }
   }
@@ -114,6 +117,7 @@ function onRecallHistory(direction: 'up' | 'down') {
 
 <template>
   <div class="terminal-shell" @click="focusTerminal($event)">
+    <div v-if="loading" class="loading">Loading...</div>
     <!-- Full-screen post detail view -->
     <div v-if="terminalMode === 'post-detail' && currentPost" class="fullscreen">
       <div class="fullscreen-content">
@@ -202,7 +206,7 @@ function onRecallHistory(direction: 'up' | 'down') {
     <!-- Full-screen friends view -->
     <div v-else-if="terminalMode === 'friends'" class="fullscreen">
       <div class="fullscreen-content">
-        <FriendsList :friends="friendsData" />
+        <FriendsList :friends="friends" />
       </div>
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
@@ -290,6 +294,17 @@ function onRecallHistory(direction: 'up' | 'down') {
 @keyframes bootFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 1.2em;
+  clip-path: inset(5px);
 }
 
 @keyframes frameGlow {

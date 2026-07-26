@@ -1,11 +1,24 @@
+import { ref } from 'vue'
 import type { Friend } from '../types'
-import friendsData from '../../../data/friends.json'
 
-/**
- * Friends data loaded from data/friends.json at build time.
- * The prebuild script (copy-data.cjs) copies ../data/friends.json into src/data/.
- * Only approved friends are exported for display.
- */
-export const friends: Friend[] = (friendsData as Friend[]).filter(
-  (f) => f.status === 'approved',
-)
+/** Reactive list of approved friends loaded from API */
+export const friends = ref<Friend[]>([])
+
+export async function loadFriends(): Promise<void> {
+  try {
+    const res = await fetch('/api/friends')
+    if (!res.ok) return
+    const data: any[] = await res.json()
+    friends.value = data.map((item) => ({
+      id: item.id,
+      name: item.name,
+      avatar: item.avatar || '',
+      description: item.description || '',
+      url: item.url || '',
+      thumbnail: item.thumbnail || '',
+      status: item.status as 'pending' | 'approved' | 'rejected',
+    }))
+  } catch {
+    // API unavailable — leave friends empty
+  }
+}

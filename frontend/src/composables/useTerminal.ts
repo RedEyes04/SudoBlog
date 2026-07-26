@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { HistoryEntry, TerminalMode, Post } from '../types'
-import { posts as postsData } from '../data/posts'
-import { friends as friendsData } from '../data/friends'
+import { posts, loadPosts, loadPost } from '../data/posts'
+import { friends, loadFriends } from '../data/friends'
 import { aboutData, asciiBanner, siteConfig, adminConfig } from '../data/config'
 
 export function useTerminal() {
@@ -12,7 +12,9 @@ export function useTerminal() {
   const historyIndex = ref(-1)
   const postListSelectedIndex = ref(0)
   const currentPostSlug = ref<string | null>(null)
+  const currentPostDetail = ref<Post | null>(null)
   const tabHints = ref<string[]>([])
+  const loading = ref(true)
   let nextEntryId = 1
 
   // ── Explicit mode (NOT derived from history — non-navigation commands don't change it)
@@ -42,20 +44,21 @@ export function useTerminal() {
 
   watch([terminalMode, currentPostSlug], () => syncHash())
 
-  function restoreFromHash(): boolean {
+  async function restoreFromHash(): Promise<boolean> {
     const hash = window.location.hash
 
     if (hash.startsWith('#/posts/')) {
       const slug = hash.slice('#/posts/'.length)
       if (slug) {
-        const post = postsData.find((p) => p.slug === slug)
-        if (post) {
-          currentPostSlug.value = post.slug
+        const fullPost = await loadPost(slug)
+        if (fullPost) {
+          currentPostSlug.value = fullPost.slug
+          currentPostDetail.value = fullPost
           terminalMode.value = 'post-detail'
           pushEntry({
-            command: `post #${post.slug}`,
+            command: `post #${fullPost.slug}`,
             type: 'component',
-            component: { name: 'PostDetail', props: { post } },
+            component: { name: 'PostDetail', props: { post: fullPost } },
           })
           return true
         }
@@ -80,8 +83,7 @@ export function useTerminal() {
   }
 
   const currentPost = computed<Post | null>(() => {
-    if (currentPostSlug.value === null) return null
-    return postsData.find((p) => p.slug === currentPostSlug.value) ?? null
+    return currentPostDetail.value
   })
 
   // ── Current working directory (for prompt display) ──────────────
@@ -209,15 +211,9 @@ export function useTerminal() {
         } else {
           // vim <slug> — open post by slug
           const slug = cmdArgs[0]
-          const post = postsData.find((p) => p.slug === slug)
+          const post = posts.value.find((p) => p.slug === slug)
           if (post) {
-            currentPostSlug.value = post.slug
-            terminalMode.value = 'post-detail'
-            pushEntry({
-              command: trimmed,
-              type: 'component',
-              component: { name: 'PostDetail', props: { post } },
-            })
+            openPostDetail(post.slug, trimmed)
           } else {
             pushEntry({ command: trimmed, type: 'html', html: `vim: 文章不存在: ${cmdArgs[0]}` })
           }
@@ -248,23 +244,31 @@ export function useTerminal() {
   }
 
   // ── Navigation ──────────────────────────────────────────────────
-  function selectPost(index: number) {
-    const post = postsData[index]
+  async function selectPost(index: number) {
+    const post = posts.value[index]
     if (!post) return
-    currentPostSlug.value = post.slug
+    await openPostDetail(post.slug, `post #${post.slug}`)
+  }
+
+  async function openPostDetail(slug: string, displayCommand: string) {
+    const fullPost = await loadPost(slug)
+    if (!fullPost) {
+      pushEntry({ command: displayCommand, type: 'html', html: `文章加载失败: ${slug}` })
+      return
+    }
+    currentPostSlug.value = fullPost.slug
+    currentPostDetail.value = fullPost
     terminalMode.value = 'post-detail'
     pushEntry({
-      command: `post #${post.slug}`,
+      command: displayCommand,
       type: 'component',
-      component: {
-        name: 'PostDetail',
-        props: { post },
-      },
+      component: { name: 'PostDetail', props: { post: fullPost } },
     })
   }
 
   function goBackFromPost() {
     currentPostSlug.value = null
+    currentPostDetail.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'posts-list'
     cmdPosts('posts')
@@ -272,6 +276,7 @@ export function useTerminal() {
 
   function goHome() {
     currentPostSlug.value = null
+    currentPostDetail.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'home'
     showBanner()
@@ -290,7 +295,6 @@ export function useTerminal() {
     // In fullscreen modes, only clear inline outputs — don't jump home
     const fullscreenModes: TerminalMode[] = ['post-detail', 'about', 'friends']
     if (fullscreenModes.includes(terminalMode.value)) {
-      // Remove all entries after the last navigation component
       const lastNavIndex = findLastNavIndex()
       if (lastNavIndex >= 0) {
         history.value = history.value.slice(0, lastNavIndex + 1)
@@ -300,6 +304,7 @@ export function useTerminal() {
 
     history.value = []
     currentPostSlug.value = null
+    currentPostDetail.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'home'
     cmdBanner('banner')
@@ -318,6 +323,7 @@ export function useTerminal() {
 
   function cmdPosts(cmd: string) {
     currentPostSlug.value = null
+    currentPostDetail.value = null
     postListSelectedIndex.value = 0
     terminalMode.value = 'posts-list'
     pushEntry({
@@ -326,7 +332,7 @@ export function useTerminal() {
       component: {
         name: 'PostsList',
         props: {
-          posts: postsData,
+          posts: posts.value,
           selectedIndex: postListSelectedIndex,
           onSelect: (index: number) => selectPost(index),
         },
@@ -353,7 +359,7 @@ export function useTerminal() {
       type: 'component',
       component: {
         name: 'FriendsList',
-        props: { friends: friendsData },
+        props: { friends: friends.value },
       },
     })
   }
@@ -384,8 +390,8 @@ export function useTerminal() {
 
   function cmdLs(cmd: string) {
     if (terminalMode.value === 'posts-list' || terminalMode.value === 'post-detail') {
-      const items = postsData.map((p, i) => `<span style="color: var(--blue)">${i + 1}.</span> ${p.title}`).join('<br>')
-      pushEntry({ command: cmd, type: 'html', html: items })
+      const items = posts.value.map((p, i) => `<span style="color: var(--blue)">${i + 1}.</span> ${p.title}`).join('<br>')
+      pushEntry({ command: cmd, type: 'html', html: items || '(空)' })
     } else {
       pushEntry({
         command: cmd,
@@ -455,7 +461,6 @@ export function useTerminal() {
     // ── Completing arguments ──
     const partialArg = parts.slice(1).join(' ').toLowerCase()
 
-    // cd <arg>
     if (cmdName === 'cd') {
       const cdArgs = ['posts', '..']
       const matches = cdArgs.filter((a) => a.startsWith(partialArg))
@@ -470,7 +475,6 @@ export function useTerminal() {
       return
     }
 
-    // vim <arg>
     if (cmdName === 'vim') {
       const vimArgs = ['about.md', 'friends.md']
       const matches = vimArgs.filter((a) => a.startsWith(partialArg))
@@ -489,15 +493,19 @@ export function useTerminal() {
   }
 
   // ── Full-screen inline outputs ──────────────────────────────────
-  // Entries added after the last fullscreen navigation component —
-  // these should render inside the fullscreen view so the user sees them.
   const fullscreenOutputs = computed(() => {
     const lastNavIndex = findLastNavIndex()
     if (lastNavIndex === -1) return []
     const outputs = history.value.slice(lastNavIndex + 1)
-    // Keep only the last 2 entries so the inline outputs don't block the view
     return outputs.slice(-2)
   })
+
+  // ── Data Loading ────────────────────────────────────────────────
+  async function loadData() {
+    loading.value = true
+    await Promise.all([loadPosts(), loadFriends()])
+    loading.value = false
+  }
 
   // ── Initial Banner ──────────────────────────────────────────────
   function showBanner() {
@@ -514,6 +522,8 @@ export function useTerminal() {
     currentPostSlug,
     currentPost,
     tabHints,
+    loading,
+    loadData,
     executeCommand,
     selectPost,
     goBackFromPost,

@@ -15,7 +15,7 @@
   --dark-gray: #4C566A;
   --bg-dark: #242933;
   --bg-input: rgba(0, 0, 0, 0.15);
-  --font: 'Hack NF', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  --font: 'Cascadia Code', 'Consolas', 'Hack NF', 'Fira Code', 'JetBrains Mono', monospace;
   --font-size: 18px;
   --line-height: 1.6;
   --border-color: var(--yellow);
