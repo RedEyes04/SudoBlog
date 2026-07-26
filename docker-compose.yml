@@ -1,7 +1,7 @@
 services:
   sudoblog-server:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     container_name: sudoblog-server
     ports:

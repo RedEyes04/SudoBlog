@@ -37,6 +37,14 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' })
 })
 
+// Serve frontend static files (built into container)
+const frontendPath = path.resolve(__dirname, '..', 'public')
+app.use(express.static(frontendPath))
+// SPA fallback — all unmatched routes serve index.html
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'))
+})
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`)
   console.log(`📝 Posts directory: ${process.env.POSTS_DIR || '../posts'}`)

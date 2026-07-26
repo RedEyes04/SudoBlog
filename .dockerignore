@@ -1,0 +1,9 @@
+**/node_modules/
+**/dist/
+**/.git/
+**/.env
+data/credentials.json
+public/images/
+DEPLOY.md
+README.md
+README_EN.md
