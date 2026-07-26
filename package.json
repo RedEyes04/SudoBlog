@@ -11,6 +11,7 @@
     "docker:push": "docker tag sudoblog-server ${ACR_REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${ACR_NAMESPACE:-sudoblog}/sudoblog:latest && docker push ${ACR_REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${ACR_NAMESPACE:-sudoblog}/sudoblog:latest"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "naive-ui": "^2.44.1"
   },
   "devDependencies": {
