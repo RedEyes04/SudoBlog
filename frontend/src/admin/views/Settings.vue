@@ -124,7 +124,7 @@ onMounted(async () => {
 .pg-head h2 { margin: 0; font-size: 18px; font-weight: 600; color: #1a1a1a; }
 .card { border-radius: 12px; }
 .ascii-preview, .ascii-render { margin-top: 12px; background: #1a1a1a; border-radius: 8px; padding: 14px 18px; }
-.ascii-preview pre, .ascii-render pre { color: #a0d995; font-family: 'Fira Code', monospace; font-size: 11px; line-height: 1.2; margin: 0; white-space: pre; overflow-x: auto; max-height: 180px; }
+.ascii-preview pre, .ascii-render pre { color: #a0d995; font-family: 'Hack NF', monospace; font-size: 11px; line-height: 1.2; margin: 0; white-space: pre; overflow-x: auto; max-height: 180px; font-smooth: never; -webkit-font-smoothing: none; }
 .ascii-input { margin-top: 12px; }
 .ascii-input :deep(textarea) { font-family: 'Fira Code', monospace; font-size: 13px; }
 .sec-title { margin: 0 0 14px; font-size: 14px; font-weight: 600; color: #555; }

@@ -41,6 +41,9 @@ setTimeout(() => { typingDone.value = true }, 800)
   margin-bottom: 1rem;
   white-space: pre;
   overflow: hidden;
+  font-family: 'Hack NF', monospace;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
 }
 
 /* ── Greeting: typewriter ── */
