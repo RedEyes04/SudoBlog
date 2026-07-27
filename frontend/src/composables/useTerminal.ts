@@ -2,7 +2,7 @@ import { ref, computed, watch } from 'vue'
 import type { HistoryEntry, TerminalMode, Post } from '../types'
 import { posts, loadPosts, loadPost } from '../data/posts'
 import { friends, loadFriends } from '../data/friends'
-import { aboutData, asciiBanner, siteConfig, adminConfig } from '../data/config'
+import { aboutData, asciiBanner, siteConfig, adminConfig, loadConfig } from '../data/config'
 
 export function useTerminal() {
   // ── Reactive State ──────────────────────────────────────────────
@@ -347,7 +347,7 @@ export function useTerminal() {
       type: 'component',
       component: {
         name: 'AboutView',
-        props: { about: aboutData },
+        props: { about: aboutData.value },
       },
     })
   }
@@ -371,13 +371,13 @@ export function useTerminal() {
       type: 'component',
       component: {
         name: 'WelcomeBanner',
-        props: { banner: asciiBanner, config: siteConfig },
+        props: { banner: asciiBanner.value, config: siteConfig.value },
       },
     })
   }
 
   function cmdWhoami(cmd: string) {
-    pushEntry({ command: cmd, type: 'html', html: siteConfig.username })
+    pushEntry({ command: cmd, type: 'html', html: siteConfig.value.username })
   }
 
   function cmdDate(cmd: string) {
@@ -503,7 +503,7 @@ export function useTerminal() {
   // ── Data Loading ────────────────────────────────────────────────
   async function loadData() {
     loading.value = true
-    await Promise.all([loadPosts(), loadFriends()])
+    await Promise.all([loadPosts(), loadFriends(), loadConfig()])
     loading.value = false
   }
 

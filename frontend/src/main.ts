@@ -1,27 +1,18 @@
 import { createApp } from 'vue'
 import './styles/global.css'
 import App from './App.vue'
-import configData from '../../data/config.json'
-
-interface RawAdminConfig {
-  path?: string
-  command?: string
-}
-
-interface RawConfig {
-  site: Record<string, unknown>
-  asciiBanner: string
-  admin?: RawAdminConfig
-}
-
-const raw = configData as RawConfig
-const adminConfig = raw.admin || { path: '/admin', command: 'admin' }
-const adminPath = adminConfig.path || '/admin'
 
 async function bootstrap() {
+  // Fetch live admin path from API (falls back to /admin)
+  let adminPath = '/admin'
+  try {
+    const res = await fetch('/api/config')
+    const config = await res.json()
+    if (config.admin?.path) adminPath = config.admin.path
+  } catch { /* use default */ }
+
   // If URL path starts with admin path, mount the admin SPA
   if (window.location.pathname.startsWith(adminPath)) {
-    // Store admin path for API/auth redirects
     localStorage.setItem('admin_path', adminPath)
     const { mountAdmin } = await import('./admin/mount')
     mountAdmin(adminPath)

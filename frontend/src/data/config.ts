@@ -1,51 +1,67 @@
+import { ref } from 'vue'
 import type { SiteConfig, AdminConfig } from '../types'
-import configData from '../../../data/config.json'
 
 /**
- * Site configuration loaded from data/config.json at build time.
- * The prebuild script (copy-data.cjs) copies ../data/config.json into src/data/.
+ * Site configuration loaded from /api/config at runtime.
+ * After loadConfig() completes, these refs hold live data from the backend.
  */
 
-interface RawAdminConfig {
-  path?: string
-  command?: string
-}
+export const siteConfig = ref<SiteConfig>({
+  title: 'SudoBlog',
+  username: 'visitor',
+  hostname: 'sudoblog',
+  avatar: '',
+  name: '',
+  bio: '',
+  beian: '',
+})
 
-interface RawConfig {
-  site: {
-    title: string
-    username: string
-    hostname: string
-    avatar: string
-    name: string
-    bio: string
-    beian: string
-  }
-  asciiBanner: string
-  admin?: RawAdminConfig
-}
+export const aboutData = ref({
+  avatar: '',
+  name: '',
+  bio: '',
+})
 
-const raw = configData as RawConfig
-
-export const siteConfig: SiteConfig = {
-  title: raw.site.title,
-  username: raw.site.username,
-  hostname: raw.site.hostname,
-  avatar: raw.site.avatar,
-  name: raw.site.name,
-  bio: raw.site.bio,
-  beian: raw.site.beian,
-}
-
-export const aboutData = {
-  avatar: raw.site.avatar,
-  name: raw.site.name,
-  bio: raw.site.bio,
-}
-
-export const asciiBanner: string = raw.asciiBanner || ''
+export const asciiBanner = ref<string>('')
 
 export const adminConfig: AdminConfig = {
-  path: raw.admin?.path || '/admin',
-  command: raw.admin?.command || 'admin',
+  path: '/admin',
+  command: 'admin',
+}
+
+export async function loadConfig(): Promise<void> {
+  try {
+    const res = await fetch('/api/config')
+    if (!res.ok) return
+    const data = await res.json()
+
+    if (data.site) {
+      siteConfig.value = {
+        title: data.site.title || 'SudoBlog',
+        username: data.site.username || 'visitor',
+        hostname: data.site.hostname || 'sudoblog',
+        avatar: data.site.avatar || '',
+        name: data.site.name || '',
+        bio: data.site.bio || '',
+        beian: data.site.beian || '',
+      }
+    }
+
+    aboutData.value = {
+      avatar: siteConfig.value.avatar,
+      name: siteConfig.value.name,
+      bio: siteConfig.value.bio,
+    }
+
+    if (data.asciiBanner) {
+      asciiBanner.value = data.asciiBanner
+    }
+
+    if (data.admin) {
+      adminConfig.path = data.admin.path || '/admin'
+      adminConfig.command = data.admin.command || 'admin'
+    }
+  } catch {
+    // Keep defaults
+  }
 }
