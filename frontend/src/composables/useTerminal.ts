@@ -58,7 +58,7 @@ export function useTerminal() {
           pushEntry({
             command: `post #${fullPost.slug}`,
             type: 'component',
-            component: { name: 'PostDetail', props: { post: fullPost } },
+            component: { name: 'PostDetail', props: { post: fullPost, twikooEnvId: siteConfig.value.twikooEnvId } },
           })
           return true
         }
@@ -262,7 +262,7 @@ export function useTerminal() {
     pushEntry({
       command: displayCommand,
       type: 'component',
-      component: { name: 'PostDetail', props: { post: fullPost } },
+      component: { name: 'PostDetail', props: { post: fullPost, twikooEnvId: siteConfig.value.twikooEnvId } },
     })
   }
 
@@ -347,7 +347,7 @@ export function useTerminal() {
       type: 'component',
       component: {
         name: 'AboutView',
-        props: { about: aboutData.value },
+        props: { about: aboutData.value, twikooEnvId: siteConfig.value.twikooEnvId },
       },
     })
   }
@@ -359,7 +359,7 @@ export function useTerminal() {
       type: 'component',
       component: {
         name: 'FriendsList',
-        props: { friends: friends.value },
+        props: { friends: friends.value, twikooEnvId: siteConfig.value.twikooEnvId },
       },
     })
   }

@@ -31,6 +31,7 @@
               <n-form-item label="头像"><n-input v-model:value="form.site.avatar" /></n-form-item>
               <n-form-item label="简介"><n-input v-model:value="form.site.bio" type="textarea" :rows="3" /></n-form-item>
               <n-form-item label="备案号"><n-input v-model:value="form.site.beian" /></n-form-item>
+              <n-form-item label="Twikoo 评论地址"><n-input v-model:value="form.site.twikooEnvId" placeholder="https://twikoo.xxx.top" /></n-form-item>
             </n-form>
           </n-card>
         </n-gi>
@@ -72,7 +73,7 @@ const message = useMessage()
 const saving = ref(false)
 
 const form = reactive({
-  asciiBanner: '', site: { title:'', username:'', hostname:'', avatar:'', name:'', bio:'', beian:'' },
+  asciiBanner: '', site: { title:'', username:'', hostname:'', avatar:'', name:'', bio:'', beian:'', twikooEnvId:'' },
   admin: { path:'/admin', command:'admin' },
 })
 

@@ -121,7 +121,7 @@ function onRecallHistory(direction: 'up' | 'down') {
     <!-- Full-screen post detail view -->
     <div v-if="terminalMode === 'post-detail' && currentPost" class="fullscreen">
       <div class="fullscreen-content">
-        <PostDetail :post="currentPost" />
+        <PostDetail :post="currentPost" :twikoo-env-id="siteConfig.twikooEnvId" />
       </div>
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
@@ -164,7 +164,7 @@ function onRecallHistory(direction: 'up' | 'down') {
     <!-- Full-screen about view -->
     <div v-else-if="terminalMode === 'about'" class="fullscreen">
       <div class="fullscreen-content">
-        <AboutView :about="aboutData" />
+        <AboutView :about="aboutData" :twikoo-env-id="siteConfig.twikooEnvId" />
       </div>
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
@@ -206,7 +206,7 @@ function onRecallHistory(direction: 'up' | 'down') {
     <!-- Full-screen friends view -->
     <div v-else-if="terminalMode === 'friends'" class="fullscreen">
       <div class="fullscreen-content">
-        <FriendsList :friends="friends" />
+        <FriendsList :friends="friends" :twikoo-env-id="siteConfig.twikooEnvId" />
       </div>
       <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
         <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">

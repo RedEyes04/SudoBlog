@@ -2,8 +2,9 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { AboutData } from '../../types'
 
-defineProps<{
+const props = defineProps<{
   about: AboutData
+  twikooEnvId?: string
 }>()
 
 const visible = ref(false)
@@ -40,8 +41,9 @@ function loadTwikoo() {
 }
 
 function initTwikoo() {
+  if (!props.twikooEnvId) return
   window.twikoo?.init({
-    envId: 'https://twikoo.redeyes.top',
+    envId: props.twikooEnvId,
     el: '#tcomment-about',
     path: '/about',
     lang: 'zh-CN',

@@ -14,6 +14,7 @@ export const siteConfig = ref<SiteConfig>({
   name: '',
   bio: '',
   beian: '',
+  twikooEnvId: '',
 })
 
 export const aboutData = ref({
@@ -44,6 +45,7 @@ export async function loadConfig(): Promise<void> {
         name: data.site.name || '',
         bio: data.site.bio || '',
         beian: data.site.beian || '',
+        twikooEnvId: data.site.twikooEnvId || '',
       }
     }
 

@@ -2,8 +2,9 @@
 import { onMounted, onUnmounted, ref, reactive } from 'vue'
 import type { Friend } from '../../types'
 
-defineProps<{
+const props = defineProps<{
   friends: Friend[]
+  twikooEnvId?: string
 }>()
 
 // ── Application form ──
@@ -82,8 +83,9 @@ function loadTwikoo() {
 }
 
 function initTwikoo() {
+  if (!props.twikooEnvId) return
   window.twikoo?.init({
-    envId: 'https://twikoo.redeyes.top',
+    envId: props.twikooEnvId,
     el: '#tcomment-friends',
     path: '/friends',
     lang: 'zh-CN',

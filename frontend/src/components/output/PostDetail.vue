@@ -13,6 +13,7 @@ declare global {
 
 const props = defineProps<{
   post: Post
+  twikooEnvId?: string
 }>()
 
 // ── TOC: extract headings from raw markdown ──
@@ -138,8 +139,9 @@ function loadTwikoo() {
 }
 
 function initTwikoo() {
+  if (!props.twikooEnvId) return
   window.twikoo?.init({
-    envId: 'https://twikoo.redeyes.top',
+    envId: props.twikooEnvId,
     el: '#tcomment',
     path: window.location.hash || '/',
     lang: 'zh-CN',

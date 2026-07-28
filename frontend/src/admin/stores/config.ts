@@ -10,6 +10,7 @@ export interface SiteSettings {
   name: string
   bio: string
   beian: string
+  twikooEnvId?: string
 }
 
 export interface AdminSettings {
@@ -33,6 +34,7 @@ export const useConfigStore = defineStore('config', () => {
       name: '',
       bio: '',
       beian: '',
+      twikooEnvId: '',
     },
     asciiBanner: '',
   })

@@ -28,6 +28,7 @@ export interface SiteConfig {
   bio: string
   name: string
   beian?: string
+  twikooEnvId?: string
 }
 
 export interface AdminConfig {
