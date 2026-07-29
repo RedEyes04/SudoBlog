@@ -13,5 +13,14 @@
   "admin": {
     "path": "/admin",
     "command": "admin"
+  },
+  "smtp": {
+    "host": "smtp.qq.com",
+    "port": 465,
+    "secure": true,
+    "user": "1572166648@qq.com",
+    "pass": "vbdjbnibdptfigja",
+    "from": "REDEYES",
+    "to": "18962030931@163.com"
   }
 }

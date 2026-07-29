@@ -44,6 +44,7 @@ async function sendNotificationEmail(applicant: { name: string; url: string; des
     port: smtp.port,
     secure: smtp.secure,
     auth: { user: smtp.user, pass: smtp.pass },
+    tls: { rejectUnauthorized: false },
   })
 
   const appUrl = applicant.url
@@ -249,6 +250,7 @@ router.post('/test-mail', authMiddleware, async (_req, res) => {
       port: smtp.port,
       secure: smtp.secure,
       auth: { user: smtp.user, pass: smtp.pass },
+      tls: { rejectUnauthorized: false },
     })
 
     await transporter.sendMail({
