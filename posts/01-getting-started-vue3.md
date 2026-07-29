@@ -1,12 +1,16 @@
 ---
 title: Getting Started with Vue 3 Composition API
+date: '2026-07-20'
 subtitle: A Modern Approach to Building UIs
-summary: Explore the Composition API and learn how it simplifies component logic, state management, and code organization in Vue 3.
-date: 2026-07-20
+summary: >-
+  Explore the Composition API and learn how it simplifies component logic, state
+  management, and code organization in Vue 3.
 tags:
   - Vue
   - TypeScript
+cover: ''
 status: publish
+pinned: true
 ---
 
 ## Why the Composition API?

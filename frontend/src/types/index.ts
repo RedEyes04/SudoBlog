@@ -8,6 +8,7 @@ export interface Post {
   tags?: string[]
   cover?: string
   status?: 'publish' | 'draft'
+  pinned?: boolean
 }
 
 export interface Friend {

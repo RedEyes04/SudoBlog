@@ -1,12 +1,16 @@
 ---
 title: Building a Terminal-Style Website
+date: '2026-07-18'
 subtitle: Retro Aesthetics Meet Modern Web Tech
-summary: Learn how to create a terminal-inspired interface that is both visually striking and highly functional.
-date: 2026-07-18
+summary: >-
+  Learn how to create a terminal-inspired interface that is both visually
+  striking and highly functional.
 tags:
   - CSS
   - Design
+cover: ''
 status: publish
+pinned: true
 ---
 
 ## Why Terminal Style?

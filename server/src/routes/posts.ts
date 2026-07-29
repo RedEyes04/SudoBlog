@@ -34,6 +34,7 @@ interface PostMeta {
   tags?: string[]
   cover?: string
   status?: 'publish' | 'draft'
+  pinned?: boolean
 }
 
 /** GET /api/posts — List all posts (metadata only) */
@@ -59,9 +60,16 @@ router.get('/', (_req, res) => {
           tags: data.tags || [],
           cover: data.cover || '',
           status: data.status || 'draft',
+          pinned: data.pinned === true || data.pinned === 'true',
         }
       })
-      .sort((a, b) => b.date.localeCompare(a.date))
+      .sort((a, b) => {
+        // Pinned posts first
+        if (a.pinned && !b.pinned) return -1
+        if (!a.pinned && b.pinned) return 1
+        // Then by date descending
+        return b.date.localeCompare(a.date)
+      })
 
     res.json(posts)
   } catch (err) {
@@ -178,6 +186,7 @@ router.put('/:id', authMiddleware, (req, res) => {
       date,
       subtitle,
       summary,
+      pinned,
     } = req.body
 
     // Read existing file to merge frontmatter
@@ -192,6 +201,7 @@ router.put('/:id', authMiddleware, (req, res) => {
       tags: tags ?? existing.data.tags ?? [],
       cover: cover ?? existing.data.cover ?? '',
       status: status ?? existing.data.status ?? 'draft',
+      pinned: pinned ?? existing.data.pinned ?? false,
     }
 
     const newContent = content !== undefined ? content.trim() : existing.content

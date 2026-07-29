@@ -21,8 +21,13 @@ export async function loadPosts(): Promise<void> {
         tags: item.tags || [],
         cover: item.cover || '',
         status: (item.status === 'publish' ? 'publish' : 'draft') as 'publish' | 'draft',
+        pinned: item.pinned === true || item.pinned === 'true',
       }))
-      .sort((a, b) => b.date.localeCompare(a.date))
+      .sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1
+        if (!a.pinned && b.pinned) return 1
+        return b.date.localeCompare(a.date)
+      })
   } catch {
     // API unavailable — leave posts empty
   }
@@ -44,6 +49,7 @@ export async function loadPost(slug: string): Promise<Post | null> {
       tags: item.meta?.tags || [],
       cover: item.meta?.cover || '',
       status: (item.meta?.status === 'publish' ? 'publish' : 'draft') as 'publish' | 'draft',
+      pinned: item.meta?.pinned === true || item.meta?.pinned === 'true',
     }
   } catch {
     return null

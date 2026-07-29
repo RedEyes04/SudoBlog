@@ -210,12 +210,18 @@ export function useTerminal() {
           cmdFriend(trimmed)
         } else {
           // vim <slug> — open post by slug
-          const slug = cmdArgs[0]
-          const post = posts.value.find((p) => p.slug === slug)
-          if (post) {
-            openPostDetail(post.slug, trimmed)
+          // vim <number> — open post by 1-based index (shown by ls)
+          const arg = cmdArgs[0]
+          const numIndex = parseInt(arg, 10)
+          if (!isNaN(numIndex) && numIndex >= 1 && numIndex <= posts.value.length) {
+            selectPost(numIndex - 1)
           } else {
-            pushEntry({ command: trimmed, type: 'html', html: `vim: 文章不存在: ${cmdArgs[0]}` })
+            const post = posts.value.find((p) => p.slug === arg)
+            if (post) {
+              openPostDetail(post.slug, trimmed)
+            } else {
+              pushEntry({ command: trimmed, type: 'html', html: `vim: 文章不存在: ${arg}` })
+            }
           }
         }
         break

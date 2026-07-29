@@ -22,11 +22,20 @@ async function del(id: string) {
   try { await posts.deletePost(id); message.success('已删除') } catch { }
 }
 
+async function pin(id: string, pinned: boolean) {
+  try {
+    await posts.togglePin(id, !pinned)
+    message.success(pinned ? '已取消置顶' : '已置顶')
+  } catch { }
+}
+
 const cols = [
+  { title:'', key:'pinned', width:40, render:(r:any)=>r.pinned ? h('span',{style:{fontSize:'15px'}}, '⭐️') : '' },
   { title:'标题', key:'title', ellipsis:true },
   { title:'日期', key:'date', width:130 },
   { title:'状态', key:'status', width:90, render:(r:any)=>h(NTag,{type:r.status==='publish'?'success':'default',size:'small',bordered:false},{default:()=>r.status==='publish'?'已发布':'草稿'}) },
-  { title:'操作', key:'actions', width:160, render:(r:any)=>h('div',{style:{display:'flex',gap:'6px'}},[
+  { title:'操作', key:'actions', width:220, render:(r:any)=>h('div',{style:{display:'flex',gap:'6px'}},[
+    h(NButton,{size:'tiny',onClick:()=>pin(r.id, r.pinned)},{default:()=>r.pinned?'取消置顶':'置顶'}),
     h(NButton,{size:'tiny',onClick:()=>router.push('/editor/'+r.id)},{default:()=>'编辑'}),
     h(NPopconfirm,{onPositiveClick:()=>del(r.id)},{default:()=>'确定删除？',trigger:()=>h(NButton,{size:'tiny',type:'error'},{default:()=>'删除'})}),
   ])},

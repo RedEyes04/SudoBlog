@@ -4,7 +4,6 @@ import path from 'node:path'
 import nodemailer from 'nodemailer'
 import { authMiddleware } from '../middleware/auth.js'
 import { readConfig } from './config.js'
-import type { SmtpConfig } from './config.js'
 
 const router = Router()
 
@@ -236,7 +235,7 @@ router.delete('/:id', authMiddleware, (req, res) => {
 })
 
 /** POST /api/friends/test-mail — Admin: test SMTP email delivery */
-router.post('/test-mail', authMiddleware, async (req, res) => {
+router.post('/test-mail', authMiddleware, async (_req, res) => {
   try {
     const config = readConfig()
     const smtp = config.smtp

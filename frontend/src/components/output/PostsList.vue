@@ -26,6 +26,7 @@ defineProps<{
           <span class="title">{{ post.title }}</span>
           <span class="meta">{{ post.date }} &mdash; {{ post.subtitle }}</span>
         </div>
+        <span class="pinned-star" v-if="post.pinned">⭐️</span>
         <span class="arrow" v-if="index === selectedIndex">&#x25B6;</span>
       </div>
     </div>
@@ -101,6 +102,12 @@ defineProps<{
 .title {
   color: var(--fg);
   font-weight: 500;
+}
+
+.pinned-star {
+  color: var(--yellow, #e6a23c);
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .meta {

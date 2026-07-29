@@ -11,6 +11,7 @@ export interface PostSummary {
   tags?: string[]
   cover?: string
   status: 'publish' | 'draft'
+  pinned?: boolean
 }
 
 export interface PostDetail extends PostSummary {
@@ -22,6 +23,7 @@ export interface PostDetail extends PostSummary {
     tags: string[]
     cover: string
     status: 'publish' | 'draft'
+    pinned?: boolean
   }
 }
 
@@ -91,6 +93,11 @@ export const usePostsStore = defineStore('posts', () => {
     await fetchPosts()
   }
 
+  async function togglePin(id: string, pinned: boolean) {
+    await api.put(`/posts/${id}`, { pinned })
+    await fetchPosts()
+  }
+
   return {
     posts,
     currentPost,
@@ -102,5 +109,6 @@ export const usePostsStore = defineStore('posts', () => {
     createPost,
     updatePost,
     deletePost,
+    togglePin,
   }
 })
