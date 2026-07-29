@@ -1,7 +1,10 @@
 import { Router } from 'express'
 import fs from 'node:fs'
 import path from 'node:path'
+import nodemailer from 'nodemailer'
 import { authMiddleware } from '../middleware/auth.js'
+import { readConfig } from './config.js'
+import type { SmtpConfig } from './config.js'
 
 const router = Router()
 
@@ -31,6 +34,40 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, '')
     || `friend-${Date.now()}`
 }
+
+async function sendNotificationEmail(applicant: { name: string; url: string; description: string }): Promise<void> {
+  const config = readConfig()
+  const smtp = config.smtp
+  if (!smtp || !smtp.host) return // SMTP not configured, skip
+
+  const transporter = nodemailer.createTransport({
+    host: smtp.host,
+    port: smtp.port,
+    secure: smtp.secure,
+    auth: { user: smtp.user, pass: smtp.pass },
+  })
+
+  const appUrl = applicant.url
+  const siteTitle = config.site?.title || 'SudoBlog'
+
+  await transporter.sendMail({
+    from: smtp.from,
+    to: smtp.to,
+    subject: `[${siteTitle}] 新的友链申请：${applicant.name}`,
+    html: [
+      '<div style="font-family:sans-serif;max-width:500px;margin:0 auto">',
+      `<h2 style="color:#1a1a1a">新的友链申请</h2>`,
+      '<table style="border-collapse:collapse;width:100%">',
+      `<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666">名称</td><td style="padding:8px;border-bottom:1px solid #eee">${applicant.name}</td></tr>`,
+      `<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666">链接</td><td style="padding:8px;border-bottom:1px solid #eee"><a href="${appUrl}">${appUrl}</a></td></tr>`,
+      applicant.description ? `<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666">描述</td><td style="padding:8px;border-bottom:1px solid #eee">${applicant.description}</td></tr>` : '',
+      '</table>',
+      '<p style="color:#999;font-size:13px;margin-top:16px">请前往后台审核该申请。</p>',
+      '</div>',
+    ].join(''),
+  })
+}
+
 
 interface FriendRecord {
   id: string
@@ -99,6 +136,10 @@ router.post('/apply', (req, res) => {
 
     friends.push(record)
     writeFriends(friends)
+
+    // Send email notification (non-blocking, errors logged but don't fail the request)
+    sendNotificationEmail({ name: record.name, url: record.url, description: record.description })
+      .catch(err => console.error('Failed to send notification email:', err))
 
     res.status(201).json({ success: true, message: 'Application submitted for review' })
   } catch (err) {
@@ -191,6 +232,37 @@ router.delete('/:id', authMiddleware, (req, res) => {
   } catch (err) {
     console.error('Error deleting friend:', err)
     res.status(500).json({ error: 'Failed to delete friend' })
+  }
+})
+
+/** POST /api/friends/test-mail — Admin: test SMTP email delivery */
+router.post('/test-mail', authMiddleware, async (req, res) => {
+  try {
+    const config = readConfig()
+    const smtp = config.smtp
+    if (!smtp || !smtp.host) {
+      res.status(400).json({ error: 'SMTP 未配置，请先在系统设置中配置邮件服务器' })
+      return
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: { user: smtp.user, pass: smtp.pass },
+    })
+
+    await transporter.sendMail({
+      from: smtp.from,
+      to: smtp.to,
+      subject: `[${config.site?.title || 'SudoBlog'}] 测试邮件`,
+      html: '<p>这是一封来自 SudoBlog 的测试邮件。如果你收到此邮件，说明 SMTP 配置正确 ✅</p>',
+    })
+
+    res.json({ success: true, message: '测试邮件已发送' })
+  } catch (err) {
+    console.error('Test mail failed:', err)
+    res.status(500).json({ error: `发送失败：${err instanceof Error ? err.message : '未知错误'}` })
   }
 })
 

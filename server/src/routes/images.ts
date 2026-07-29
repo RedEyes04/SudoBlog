@@ -159,4 +159,42 @@ router.post('/batch-delete', authMiddleware, (req, res) => {
   res.json({ deleted, failed, count: deleted.length })
 })
 
+// POST /api/images/cleanup-unused — delete all unused images
+router.post('/cleanup-unused', authMiddleware, (_req, res) => {
+  try {
+    const usageMap = buildUsageMap()
+
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      res.json({ deleted: [], count: 0 })
+      return
+    }
+
+    const files = fs.readdirSync(UPLOAD_DIR)
+    const deleted: string[] = []
+    const failed: string[] = []
+
+    for (const filename of files) {
+      if (!IMAGE_EXTS.has(path.extname(filename).toLowerCase())) continue
+
+      const usedBy = usageMap.get(filename.toLowerCase())
+      if (usedBy && usedBy.length > 0) continue // Skip used images
+
+      const filepath = path.join(UPLOAD_DIR, filename)
+      if (!filepath.startsWith(UPLOAD_DIR)) continue
+
+      try {
+        fs.unlinkSync(filepath)
+        deleted.push(filename)
+      } catch {
+        failed.push(filename)
+      }
+    }
+
+    res.json({ deleted, failed, count: deleted.length })
+  } catch (err) {
+    console.error('Error cleaning up unused images:', err)
+    res.status(500).json({ error: 'Failed to clean up unused images' })
+  }
+})
+
 export default router

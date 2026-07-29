@@ -18,15 +18,27 @@ interface SiteConfig {
   name: string
   bio: string
   beian: string
+  twikooEnvId?: string
+}
+
+export interface SmtpConfig {
+  host: string
+  port: number
+  secure: boolean
+  user: string
+  pass: string
+  from: string
+  to: string
 }
 
 interface ConfigData {
   site: SiteConfig
   asciiBanner: string
   admin?: { path?: string; command?: string }
+  smtp?: SmtpConfig
 }
 
-function readConfig(): ConfigData {
+export function readConfig(): ConfigData {
   const filePath = dataPath()
   if (!fs.existsSync(filePath)) {
     return {
@@ -38,6 +50,7 @@ function readConfig(): ConfigData {
         name: '',
         bio: '',
         beian: '',
+        twikooEnvId: '',
       },
       asciiBanner: '',
     }
@@ -80,6 +93,11 @@ router.put('/', authMiddleware, (req, res) => {
     // Merge admin fields
     if (req.body.admin) {
       config.admin = { ...config.admin, ...req.body.admin }
+    }
+
+    // Merge SMTP fields
+    if (req.body.smtp) {
+      config.smtp = { ...config.smtp, ...req.body.smtp }
     }
 
     writeConfig(config)

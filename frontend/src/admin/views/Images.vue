@@ -5,6 +5,21 @@
       <div class="pg-head-actions">
         <n-checkbox v-if="store.images.length" :checked="allSelected" :indeterminate="someSelected && !allSelected" @update:checked="toggleSelectAll" style="margin-right:4px" />
         <span class="count" v-if="store.images.length">{{ store.images.length }} 张图片</span>
+        <n-popconfirm
+          v-if="store.unusedImages.length > 0"
+          @positive-click="cleanupAll"
+        >
+          <template #trigger>
+            <n-button type="warning" :loading="cleaning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:5px;vertical-align:-2px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              清理未使用图片
+            </n-button>
+          </template>
+          <div style="max-width:280px">
+            <p style="margin:0 0 8px;font-weight:600">确定删除所有未使用图片？</p>
+            <p style="margin:0;color:#999;font-size:13px">此操作将删除 {{ store.unusedImages.length }} 张未被任何文章引用的图片，不可撤销。</p>
+          </div>
+        </n-popconfirm>
         <n-upload
           :action="uploadUrl"
           :headers="uploadHeaders"
@@ -183,6 +198,19 @@ async function batchDel() {
     message.success(`已删除 ${filenames.length} 张图片`)
   } catch {
     message.error('批量删除失败')
+  }
+}
+
+const cleaning = ref(false)
+async function cleanupAll() {
+  cleaning.value = true
+  try {
+    const result = await store.cleanupUnusedImages()
+    message.success(`已清理 ${result.count} 张未使用图片`)
+  } catch {
+    message.error('清理失败')
+  } finally {
+    cleaning.value = false
   }
 }
 

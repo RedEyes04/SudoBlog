@@ -54,6 +54,11 @@ export function createAdminRouter(basePath: string) {
             name: 'Settings',
             component: () => import('../views/Settings.vue'),
           },
+          {
+            path: 'theme',
+            name: 'ThemeSettings',
+            component: () => import('../views/ThemeSettings.vue'),
+          },
         ],
       },
     ],

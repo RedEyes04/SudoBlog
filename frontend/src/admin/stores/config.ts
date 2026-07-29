@@ -13,6 +13,16 @@ export interface SiteSettings {
   twikooEnvId?: string
 }
 
+export interface SmtpSettings {
+  host: string
+  port: number
+  secure: boolean
+  user: string
+  pass: string
+  from: string
+  to: string
+}
+
 export interface AdminSettings {
   path?: string
   command?: string
@@ -22,6 +32,7 @@ export interface ConfigData {
   site: SiteSettings
   asciiBanner: string
   admin?: AdminSettings
+  smtp?: SmtpSettings
 }
 
 export const useConfigStore = defineStore('config', () => {

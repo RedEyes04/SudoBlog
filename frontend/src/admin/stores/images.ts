@@ -58,6 +58,14 @@ export const useImagesStore = defineStore('images', () => {
     images.value = images.value.filter((img) => !filenames.includes(img.filename))
   }
 
+  async function cleanupUnusedImages() {
+    const { data } = await api.post('/images/cleanup-unused')
+    // Remove deleted images from local state
+    const deletedSet = new Set(data.deleted as string[])
+    images.value = images.value.filter((img) => !deletedSet.has(img.filename))
+    return data as { deleted: string[]; failed: string[]; count: number }
+  }
+
   return {
     images,
     loading,
@@ -69,5 +77,6 @@ export const useImagesStore = defineStore('images', () => {
     fetchImages,
     deleteImage,
     batchDeleteImages,
+    cleanupUnusedImages,
   }
 })
