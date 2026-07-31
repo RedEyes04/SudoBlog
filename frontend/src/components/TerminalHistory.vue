@@ -8,6 +8,7 @@ import PostDetail from './output/PostDetail.vue'
 import AboutView from './output/AboutView.vue'
 import FriendsList from './output/FriendsList.vue'
 import HelpOutput from './output/HelpOutput.vue'
+import ProjectsView from './output/ProjectsView.vue'
 
 const props = defineProps<{
   history: HistoryEntry[]
@@ -21,10 +22,11 @@ const componentMap: Record<OutputComponentName, Component> = {
   AboutView,
   FriendsList,
   HelpOutput,
+  ProjectsView,
 }
 
 // These are rendered full-screen by TerminalContainer, not inline
-const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutView', 'FriendsList'])
+const fullscreenComponents = new Set<OutputComponentName>(['PostDetail', 'AboutView', 'FriendsList', 'ProjectsView'])
 </script>
 
 <template>

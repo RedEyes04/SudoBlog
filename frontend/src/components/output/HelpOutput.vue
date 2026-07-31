@@ -8,6 +8,8 @@ const allCommands = [
   { cmd: 'vim <id>', desc: '打开指定文章' },
   { cmd: 'vim about.md', desc: '查看关于页面' },
   { cmd: 'vim friends.md', desc: '查看友链页面' },
+  { cmd: 'project', desc: '查看项目 & GitHub 热力图' },
+  { cmd: 'vim projects.md', desc: '同上（vim 风格）' },
   { cmd: ':wq', desc: '退出 vim / 返回' },
   { cmd: 'clear', desc: '清屏（或 Ctrl+L）' },
   { cmd: 'banner', desc: '显示欢迎横幅' },

@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import type { SiteConfig, AdminConfig } from '../types'
+import { githubUsername } from './projects'
 
 /**
  * Site configuration loaded from /api/config at runtime.
@@ -15,6 +16,7 @@ export const siteConfig = ref<SiteConfig>({
   bio: '',
   beian: '',
   twikooEnvId: '',
+  githubUsername: '',
 })
 
 export const aboutData = ref({
@@ -46,6 +48,12 @@ export async function loadConfig(): Promise<void> {
         bio: data.site.bio || '',
         beian: data.site.beian || '',
         twikooEnvId: data.site.twikooEnvId || '',
+        githubUsername: data.site.githubUsername || '',
+      }
+
+      // Sync GitHub username to projects module
+      if (data.site.githubUsername) {
+        githubUsername.value = data.site.githubUsername
       }
     }
 

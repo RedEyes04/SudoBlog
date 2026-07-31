@@ -4,6 +4,7 @@ import { useTerminal } from '../composables/useTerminal'
 import { posts } from '../data/posts'
 import { friends } from '../data/friends'
 import { aboutData, siteConfig } from '../data/config'
+import { projects } from '../data/projects'
 import type { OutputComponentName } from '../types'
 import TerminalHistory from './TerminalHistory.vue'
 import TerminalInput from './TerminalInput.vue'
@@ -14,6 +15,7 @@ import FriendsList from './output/FriendsList.vue'
 import HelpOutput from './output/HelpOutput.vue'
 import WelcomeBanner from './output/WelcomeBanner.vue'
 import PostsList from './output/PostsList.vue'
+import ProjectsView from './output/ProjectsView.vue'
 
 const {
   history,
@@ -46,6 +48,7 @@ const componentMap: Record<OutputComponentName, Component> = {
   AboutView,
   FriendsList,
   HelpOutput,
+  ProjectsView,
 }
 
 onMounted(async () => {
@@ -57,7 +60,7 @@ onMounted(async () => {
 })
 
 // Scroll to bottom on new history entries (terminal mode only)
-const fullscreenModes = ['post-detail', 'about', 'friends']
+const fullscreenModes = ['post-detail', 'about', 'friends', 'projects']
 watch(history, () => {
   if (!fullscreenModes.includes(terminalMode.value)) {
     nextTick(() => {
@@ -241,6 +244,49 @@ function onRecallHistory(direction: 'up' | 'down') {
           <span class="hint-key">:wq</span> 返回终端 ·
           <span class="hint-key">vim &lt;id&gt;</span> 文章 ·
           <span class="hint-key">vim about.md</span> 关于
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-screen projects view -->
+    <div v-else-if="terminalMode === 'projects'" class="fullscreen">
+      <div class="fullscreen-content">
+        <ProjectsView :projects="projects" :twikoo-env-id="siteConfig.twikooEnvId" />
+      </div>
+      <div class="fullscreen-outputs" v-if="fullscreenOutputs.length">
+        <div v-for="entry in fullscreenOutputs" :key="entry.id" class="inline-entry">
+          <div class="inline-cmd-line">
+            <TerminalPrompt :cwd="cwd" />
+            <span class="inline-cmd-text">{{ entry.command }}</span>
+          </div>
+          <div v-if="entry.type === 'html' && entry.html" class="inline-html" v-html="entry.html" />
+          <component
+            v-else-if="entry.type === 'component' && entry.component"
+            :is="componentMap[entry.component.name]"
+            v-bind="entry.component.props"
+          />
+        </div>
+      </div>
+      <div class="fullscreen-cmd">
+        <TerminalInput
+          ref="inputRef"
+          :command="command"
+          :cwd="cwd"
+          :mode="terminalMode"
+          :tab-hints="tabHints"
+          @update:command="onUpdateCommand"
+          @execute="onExecute"
+          @select-post="onSelectPost"
+          @navigate-post-list="onKeyNav"
+          @clear="onClear"
+          @tab-complete="onTabComplete"
+          @recall-history="onRecallHistory"
+        />
+        <div class="cmd-hint">
+          <span class="hint-key">:wq</span> 返回终端 ·
+          <span class="hint-key">vim &lt;id&gt;</span> 文章 ·
+          <span class="hint-key">vim about.md</span> 关于 ·
+          <span class="hint-key">vim friends.md</span> 友链
         </div>
       </div>
     </div>
