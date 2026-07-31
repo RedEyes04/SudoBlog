@@ -102,6 +102,7 @@ import { useMessage } from 'naive-ui'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
+import { marked } from 'marked'
 import Placeholder from '@tiptap/extension-placeholder'
 import { usePostsStore } from '../stores/posts'
 
@@ -120,7 +121,7 @@ const form = reactive({
 })
 
 const editor = useEditor({
-  extensions: [StarterKit.configure({codeBlock:false}),Image.configure({inline:false}),Placeholder.configure({placeholder:'开始写作…'})],
+  extensions: [StarterKit,Image.configure({inline:false}),Placeholder.configure({placeholder:'开始写作…'})],
   content:'',
   onUpdate:({editor:ed})=>{ form.content = ed.getHTML() },
   editorProps: {
@@ -208,8 +209,14 @@ async function save(status:'publish'|'draft') {
 
 onMounted(async()=>{
   if(props.id){ const p=await posts.fetchPost(props.id)
-    if(p){ form.title=p.title;form.content=p.content;form.tags=p.meta.tags||[];form.cover=p.meta.cover||'';form.status=p.status;form.date=p.meta.date||p.date;form.subtitle=p.meta.subtitle||'';form.summary=p.meta.summary||''
-    if(editor.value)editor.value.commands.setContent(p.content) }
+    if(p){
+      form.title=p.title;form.tags=p.meta.tags||[];form.cover=p.meta.cover||'';form.status=p.status;form.date=p.meta.date||p.date;form.subtitle=p.meta.subtitle||'';form.summary=p.meta.summary||''
+      // Convert markdown to HTML for TipTap rendering
+      const content = p.content || ''
+      const html = content.trim().startsWith('<') ? content : marked.parse(content, { breaks: true, gfm: true }) as string
+      form.content = html
+      if(editor.value) editor.value.commands.setContent(html)
+    }
   }
 })
 

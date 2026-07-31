@@ -31,16 +31,29 @@ function slugify(text: string): string {
 }
 
 const tocItems = computed<TocItem[]>(() => {
-  // Strip fenced code blocks so `#` inside them isn't treated as a heading
-  const cleanContent = props.post.content.replace(/```[\s\S]*?```/g, '')
-  const headingRegex = /^(#{1,2})\s+(.+)$/gm
+  const raw = props.post.content
   const items: TocItem[] = []
+
+  // Extract markdown headings: # Title, ## Title
+  const cleanContent = raw.replace(/```[\s\S]*?```/g, '')
+  const mdRegex = /^(#{1,2})\s+(.+)$/gm
   let match: RegExpExecArray | null
-  while ((match = headingRegex.exec(cleanContent)) !== null) {
+  while ((match = mdRegex.exec(cleanContent)) !== null) {
     const level = match[1].length
     const text = match[2].trim()
     items.push({ id: slugify(text), text, level })
   }
+
+  // Extract HTML headings from editor-saved content: <h1>, <h2>
+  if (items.length === 0) {
+    const htmlRegex = /<h([12])[^>]*>(.+?)<\/h[12]>/gi
+    while ((match = htmlRegex.exec(raw)) !== null) {
+      const level = parseInt(match[1])
+      const text = match[2].replace(/<[^>]+>/g, '').trim()
+      if (text) items.push({ id: slugify(text), text, level })
+    }
+  }
+
   return items
 })
 
@@ -115,8 +128,61 @@ renderer.code = function ({ text, lang }: { text: string; lang?: string }): stri
   ].join('')
 }
 
+/** Pre-process content before markdown rendering:
+ *  - Strip Obsidian-style image width: ![alt|597](url) → ![alt](url)
+ *  - Unwrap single outer <p> tag that wraps the entire content
+ *  - Restore missing line breaks before markdown structural elements
+ *  - Clean up stray "复制" labels from pasted code blocks
+ */
+function preprocessContent(content: string): string {
+  let c = content
+  // Fix Obsidian image sizing: ![alt|600](url) → ![alt](url)
+  c = c.replace(/!\[([^\]]*)\|\d+\]\(/g, '![$1](')
+  // If entire content is wrapped in a single <p> tag, strip it
+  if (/^<p>[\s\S]*<\/p>$/.test(c.trim())) {
+    c = c.trim().replace(/^<p>/, '').replace(/<\/p>$/, '')
+  }
+
+  // Protect URLs from heading regex (URLs may contain # fragments)
+  const links: string[] = []
+  c = c.replace(/\[([^\]]*)\]\(([^)]+)\)/g, (m) => { links.push(m); return `\x00L${links.length - 1}\x00` })
+  const urls: string[] = []
+  c = c.replace(/https?:\/\/\S+/g, (m) => { if (m.includes('#')) { urls.push(m); return `\x00U${urls.length - 1}\x00` } return m })
+
+  // Protect code blocks from heading regexes — content inside ``` must not be touched
+  const codeBlocks: string[] = []
+  c = c.replace(/```[\s\S]*?```/g, (m) => { codeBlocks.push(m); return `\x00C${codeBlocks.length - 1}\x00` })
+
+  // Fix mangled headings: # # → ##, # # # → ###
+  c = c.replace(/# # # /g, '### ')
+  c = c.replace(/# # /g, '## ')
+  // Merge split headings: lone # with # on next line (optional blank line between) → ##
+  c = c.replace(/^#\s*\n\s*# /gm, '## ')
+  // Restore newlines before markdown headings (#, ##, ### — with or without trailing space)
+  c = c.replace(/([^\n])(#{1,3})([^\s#])/g, '$1\n$2 $3')
+  c = c.replace(/([^\n])(#{1,3})\s/g, '$1\n$2 ')
+  // Restore newlines before/after code fences
+  c = c.replace(/([^\n])\s*(```)/g, '$1\n$2')
+  c = c.replace(/(```)\s*([^\n`])/g, '$1\n$2')
+  // Clean stray "复制" labels
+  c = c.replace(/\n复制\n/g, '\n')
+  c = c.replace(/^复制\n/gm, '')
+  c = c.replace(/\n?code\n复制\n/g, '\n')
+  // Clean remaining stray lone # lines
+  c = c.replace(/^#\s*$/gm, '')
+  // Convert HTML entities
+  c = c.replace(/&nbsp;/g, ' ')
+
+  // Restore protected items
+  c = c.replace(/\x00C(\d+)\x00/g, (_, i) => codeBlocks[parseInt(i)])
+  c = c.replace(/\x00L(\d+)\x00/g, (_, i) => links[parseInt(i)])
+  c = c.replace(/\x00U(\d+)\x00/g, (_, i) => urls[parseInt(i)])
+
+  return c
+}
+
 const html = computed(() => {
-  return marked.parse(props.post.content, {
+  return marked.parse(preprocessContent(props.post.content), {
     breaks: true,
     gfm: true,
     renderer,
@@ -148,10 +214,42 @@ function initTwikoo() {
   })
 }
 
+/** Post-render: add IDs to HTML headings, wrap raw code blocks with copy button */
+function enhanceContent() {
+  const el = document.querySelector('.post-content')
+  if (!el) return
+
+  // Add IDs to h1/h2 that don't have one (from TipTap HTML content)
+  el.querySelectorAll('h1, h2').forEach((h) => {
+    if (!h.id) h.id = slugify(h.textContent || '')
+  })
+
+  // Wrap raw <pre><code> blocks with copy button
+  el.querySelectorAll('pre').forEach((pre) => {
+    if (pre.closest('.code-block-wrapper')) return
+    const code = pre.querySelector('code')
+    const lang = code?.className.replace('language-', '') || 'code'
+    const text = code?.textContent || pre.textContent || ''
+    const encoded = btoa(unescape(encodeURIComponent(text)))
+    const wrapper = document.createElement('div')
+    wrapper.className = 'code-block-wrapper'
+    wrapper.innerHTML = [
+      '<div class="code-block-header">',
+        '<span class="code-lang-label">' + lang + '</span>',
+        '<button class="copy-btn">复制</button>',
+      '</div>',
+      '<pre><code class="language-' + lang + '" data-code="' + encoded + '">' + (code?.innerHTML || text) + '</code></pre>',
+    ].join('')
+    pre.parentNode?.replaceChild(wrapper, pre)
+  })
+}
+
 onMounted(() => {
   loadTwikoo()
-  // Delay scroll-spy so the DOM is rendered
-  setTimeout(setupScrollSpy, 100)
+  setTimeout(() => {
+    setupScrollSpy()
+    enhanceContent()
+  }, 100)
 })
 
 onUnmounted(() => {
@@ -258,6 +356,11 @@ function handleCopyClick(e: MouseEvent) {
   display: flex;
   gap: 2rem;
   justify-content: center;
+  cursor: default;
+}
+
+.markdown-body {
+  cursor: auto;
 }
 
 /* ── TOC floating sidebar (right side) ── */

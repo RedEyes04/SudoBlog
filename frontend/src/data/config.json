@@ -18,9 +18,9 @@
     "host": "smtp.qq.com",
     "port": 465,
     "secure": true,
-    "user": "REDEYES",
-    "pass": "kmjdgxhuhzosbahb",
-    "from": "1572166648@qq.com",
+    "user": "1572166648@qq.com",
+    "pass": "vbdjbnibdptfigja",
+    "from": "REDEYES",
     "to": "18962030931@163.com"
   }
 }
