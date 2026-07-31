@@ -3,6 +3,7 @@ import type { HistoryEntry, TerminalMode, Post } from '../types'
 import { posts, loadPosts, loadPost } from '../data/posts'
 import { friends, loadFriends } from '../data/friends'
 import { aboutData, asciiBanner, siteConfig, adminConfig, loadConfig } from '../data/config'
+import { projects, loadProjects } from '../data/projects'
 
 export function useTerminal() {
   // ── Reactive State ──────────────────────────────────────────────
@@ -35,6 +36,9 @@ export function useTerminal() {
         break
       case 'friends':
         hash = '#/friends'
+        break
+      case 'projects':
+        hash = '#/projects'
         break
       default:
         break
@@ -77,6 +81,9 @@ export function useTerminal() {
       case '#/friends':
         cmdFriend('friends')
         return true
+      case '#/projects':
+        cmdProjects('projects')
+        return true
       default:
         return false
     }
@@ -88,7 +95,9 @@ export function useTerminal() {
 
   // ── Current working directory (for prompt display) ──────────────
   const cwd = computed(() => {
-    return terminalMode.value === 'posts-list' ? '~/posts' : '~'
+    if (terminalMode.value === 'posts-list') return '~/posts'
+    if (terminalMode.value === 'projects') return '~/projects'
+    return '~'
   })
 
   // ── Helpers ─────────────────────────────────────────────────────
@@ -130,8 +139,10 @@ export function useTerminal() {
           pushEntry({ command: trimmed, type: 'html', html: '正在查看 about.md — 用 <span style="color: var(--green)">:wq</span> 返回。' })
         } else if (terminalMode.value === 'friends') {
           pushEntry({ command: trimmed, type: 'html', html: '正在查看 friends.md — 用 <span style="color: var(--green)">:wq</span> 返回。' })
+        } else if (terminalMode.value === 'projects') {
+          pushEntry({ command: trimmed, type: 'html', html: '正在查看 projects.md — 用 <span style="color: var(--green)">:wq</span> 返回。' })
         } else {
-          pushEntry({ command: trimmed, type: 'html', html: '/ — 试试 <span style="color: var(--green)">cd posts</span>、<span style="color: var(--green)">vim about.md</span>、<span style="color: var(--green)">vim friends.md</span>。' })
+          pushEntry({ command: trimmed, type: 'html', html: '/ — 试试 <span style="color: var(--green)">cd posts</span>、<span style="color: var(--green)">cd projects</span>、<span style="color: var(--green)">vim about.md</span>、<span style="color: var(--green)">vim friends.md</span>。' })
         }
         command.value = ''
         return true
@@ -141,7 +152,7 @@ export function useTerminal() {
       if (cmdArgs[0] === '..') {
         if (terminalMode.value === 'post-detail') {
           goBackFromPost()
-        } else if (terminalMode.value === 'posts-list' || terminalMode.value === 'about' || terminalMode.value === 'friends') {
+        } else if (terminalMode.value === 'posts-list' || terminalMode.value === 'about' || terminalMode.value === 'friends' || terminalMode.value === 'projects') {
           goHome()
         } else {
           pushEntry({ command: trimmed, type: 'html', html: '已经在根目录 /。' })
@@ -161,7 +172,18 @@ export function useTerminal() {
         return true
       }
 
-      pushEntry({ command: trimmed, type: 'html', html: `cd: 没有这个目录: ${cmdArgs[0]}。试试 <span style="color: var(--green)">cd posts</span>。` })
+      // cd projects
+      if (cmdArgs[0] === 'projects') {
+        if (terminalMode.value === 'projects') {
+          pushEntry({ command: trimmed, type: 'html', html: '已经在 /projects 目录。' })
+        } else {
+          cmdProjects(trimmed)
+        }
+        command.value = ''
+        return true
+      }
+
+      pushEntry({ command: trimmed, type: 'html', html: `cd: 没有这个目录: ${cmdArgs[0]}。试试 <span style="color: var(--green)">cd posts</span>、<span style="color: var(--green)">cd projects</span>。` })
       command.value = ''
       return true
     }
@@ -170,7 +192,7 @@ export function useTerminal() {
     if (cmdName === ':wq' || cmdName === ':q!' || cmdName === ':q') {
       if (terminalMode.value === 'post-detail') {
         goBackFromPost()
-      } else if (terminalMode.value === 'about' || terminalMode.value === 'friends') {
+      } else if (terminalMode.value === 'about' || terminalMode.value === 'friends' || terminalMode.value === 'projects') {
         goHome()
       } else {
         pushEntry({ command: trimmed, type: 'html', html: '不在 vim 中。' })
@@ -201,13 +223,18 @@ export function useTerminal() {
       case 'ls':
         cmdLs(trimmed)
         break
+      case 'project':
+        cmdProjects(trimmed)
+        break
       case 'vim':
         if (cmdArgs.length === 0) {
-          pushEntry({ command: trimmed, type: 'html', html: 'vim: 缺少参数。试试 <span style="color: var(--green)">vim 1</span>、<span style="color: var(--green)">vim about.md</span>。' })
+          pushEntry({ command: trimmed, type: 'html', html: 'vim: 缺少参数。试试 <span style="color: var(--green)">vim 1</span>、<span style="color: var(--green)">vim about.md</span>、<span style="color: var(--green)">vim projects.md</span>。' })
         } else if (cmdArgs[0] === 'about.md') {
           cmdAbout(trimmed)
         } else if (cmdArgs[0] === 'friends.md') {
           cmdFriend(trimmed)
+        } else if (cmdArgs[0] === 'projects.md') {
+          cmdProjects(trimmed)
         } else {
           // vim <slug> — open post by slug
           // vim <number> — open post by 1-based index (shown by ls)
@@ -299,7 +326,7 @@ export function useTerminal() {
 
   function cmdClear() {
     // In fullscreen modes, only clear inline outputs — don't jump home
-    const fullscreenModes: TerminalMode[] = ['post-detail', 'about', 'friends']
+    const fullscreenModes: TerminalMode[] = ['post-detail', 'about', 'friends', 'projects']
     if (fullscreenModes.includes(terminalMode.value)) {
       const lastNavIndex = findLastNavIndex()
       if (lastNavIndex >= 0) {
@@ -317,7 +344,7 @@ export function useTerminal() {
   }
 
   function findLastNavIndex(): number {
-    const fullscreenNavComponents = ['PostDetail', 'AboutView', 'FriendsList']
+    const fullscreenNavComponents = ['PostDetail', 'AboutView', 'FriendsList', 'ProjectsView']
     for (let i = history.value.length - 1; i >= 0; i--) {
       const entry = history.value[i]
       if (entry.type === 'component' && entry.component && fullscreenNavComponents.includes(entry.component.name)) {
@@ -370,6 +397,18 @@ export function useTerminal() {
     })
   }
 
+  function cmdProjects(cmd: string) {
+    terminalMode.value = 'projects'
+    pushEntry({
+      command: cmd,
+      type: 'component',
+      component: {
+        name: 'ProjectsView',
+        props: { projects: projects.value, twikooEnvId: siteConfig.value.twikooEnvId },
+      },
+    })
+  }
+
   function cmdBanner(cmd: string) {
     terminalMode.value = 'home'
     pushEntry({
@@ -402,7 +441,7 @@ export function useTerminal() {
       pushEntry({
         command: cmd,
         type: 'html',
-        html: `<span style="color: var(--blue)">posts/</span>  <span style="color: var(--green)">about.md</span>  <span style="color: var(--green)">friends.md</span>`,
+        html: `<span style="color: var(--blue)">posts/</span>  <span style="color: var(--blue)">projects/</span>  <span style="color: var(--green)">about.md</span>  <span style="color: var(--green)">friends.md</span>  <span style="color: var(--green)">projects.md</span>`,
       })
     }
   }
@@ -431,7 +470,7 @@ export function useTerminal() {
   // ── Tab Completion ──────────────────────────────────────────────
   const availableCommands = [
     'banner', 'cd', 'clear', 'date', 'echo',
-    'help', 'ls', 'vim', 'whoami',
+    'help', 'ls', 'project', 'vim', 'whoami',
   ]
 
   function handleTabComplete() {
@@ -468,7 +507,7 @@ export function useTerminal() {
     const partialArg = parts.slice(1).join(' ').toLowerCase()
 
     if (cmdName === 'cd') {
-      const cdArgs = ['posts', '..']
+      const cdArgs = ['posts', 'projects', '..']
       const matches = cdArgs.filter((a) => a.startsWith(partialArg))
       if (matches.length === 1) {
         command.value = 'cd ' + matches[0]
@@ -482,7 +521,7 @@ export function useTerminal() {
     }
 
     if (cmdName === 'vim') {
-      const vimArgs = ['about.md', 'friends.md']
+      const vimArgs = ['about.md', 'friends.md', 'projects.md']
       const matches = vimArgs.filter((a) => a.startsWith(partialArg))
       if (matches.length === 1) {
         command.value = 'vim ' + matches[0]
@@ -509,7 +548,7 @@ export function useTerminal() {
   // ── Data Loading ────────────────────────────────────────────────
   async function loadData() {
     loading.value = true
-    await Promise.all([loadPosts(), loadFriends(), loadConfig()])
+    await Promise.all([loadPosts(), loadFriends(), loadConfig(), loadProjects()])
     loading.value = false
   }
 

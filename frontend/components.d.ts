@@ -43,6 +43,7 @@ declare module 'vue' {
     NUpload: typeof import('naive-ui')['NUpload']
     PostDetail: typeof import('./src/components/output/PostDetail.vue')['default']
     PostsList: typeof import('./src/components/output/PostsList.vue')['default']
+    ProjectsView: typeof import('./src/components/output/ProjectsView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TerminalContainer: typeof import('./src/components/TerminalContainer.vue')['default']

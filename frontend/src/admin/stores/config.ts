@@ -11,6 +11,7 @@ export interface SiteSettings {
   bio: string
   beian: string
   twikooEnvId?: string
+  githubUsername?: string
 }
 
 export interface SmtpSettings {
@@ -46,6 +47,7 @@ export const useConfigStore = defineStore('config', () => {
       bio: '',
       beian: '',
       twikooEnvId: '',
+      githubUsername: '',
     },
     asciiBanner: '',
   })

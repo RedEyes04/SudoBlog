@@ -59,6 +59,16 @@ export function createAdminRouter(basePath: string) {
             name: 'ThemeSettings',
             component: () => import('../views/ThemeSettings.vue'),
           },
+          {
+            path: 'projects',
+            name: 'ProjectsManage',
+            component: () => import('../views/ProjectsManage.vue'),
+          },
+          {
+            path: 'github',
+            name: 'GithubSettings',
+            component: () => import('../views/GithubSettings.vue'),
+          },
         ],
       },
     ],

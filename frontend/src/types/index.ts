@@ -11,6 +11,18 @@ export interface Post {
   pinned?: boolean
 }
 
+export interface Project {
+  id?: string
+  name: string
+  description: string
+  tech: string[]
+  link: string
+  image?: string
+  githubRepo?: string
+  stars?: number
+  language?: string
+}
+
 export interface Friend {
   id: string
   name: string
@@ -30,6 +42,7 @@ export interface SiteConfig {
   name: string
   beian?: string
   twikooEnvId?: string
+  githubUsername?: string
 }
 
 export interface AdminConfig {
@@ -43,7 +56,7 @@ export interface AboutData {
   bio: string
 }
 
-export type TerminalMode = 'home' | 'posts-list' | 'post-detail' | 'about' | 'friends'
+export type TerminalMode = 'home' | 'posts-list' | 'post-detail' | 'about' | 'friends' | 'projects'
 
 export type OutputComponentName =
   | 'WelcomeBanner'
@@ -52,6 +65,7 @@ export type OutputComponentName =
   | 'AboutView'
   | 'FriendsList'
   | 'HelpOutput'
+  | 'ProjectsView'
 
 export interface ComponentEntry {
   name: OutputComponentName

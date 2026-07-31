@@ -13,6 +13,9 @@
           <n-form-item label="简介"><n-input v-model:value="form.site.bio" type="textarea" :rows="3" /></n-form-item>
           <n-grid :cols="2" :x-gap="16">
             <n-gi><n-form-item label="备案号"><n-input v-model:value="form.site.beian" /></n-form-item></n-gi>
+            <n-gi><n-form-item label="GitHub 用户名"><n-input v-model:value="form.site.githubUsername" placeholder="github 用户名" /></n-form-item></n-gi>
+          </n-grid>
+          <n-grid :cols="2" :x-gap="16">
             <n-gi><n-form-item label="Twikoo 评论地址"><n-input v-model:value="form.site.twikooEnvId" placeholder="https://twikoo.xxx.top" /></n-form-item></n-gi>
           </n-grid>
         </n-form>
@@ -46,7 +49,7 @@ const message = useMessage()
 const saving = ref(false)
 
 const form = reactive({
-  site: { name: '', avatar: '', bio: '', beian: '', twikooEnvId: '' },
+  site: { name: '', avatar: '', bio: '', beian: '', twikooEnvId: '', githubUsername: '' },
   asciiBanner: '',
 })
 
@@ -66,7 +69,7 @@ async function saveAll() {
   saving.value = true
   try {
     await store.updateConfig({
-      site: { ...store.config.site, name: form.site.name, avatar: form.site.avatar, bio: form.site.bio, beian: form.site.beian, twikooEnvId: form.site.twikooEnvId },
+      site: { ...store.config.site, name: form.site.name, avatar: form.site.avatar, bio: form.site.bio, beian: form.site.beian, twikooEnvId: form.site.twikooEnvId, githubUsername: form.site.githubUsername },
       asciiBanner: form.asciiBanner,
     })
     message.success('已保存')
@@ -81,6 +84,7 @@ onMounted(async () => {
   form.site.bio = store.config.site.bio
   form.site.beian = store.config.site.beian
   form.site.twikooEnvId = store.config.site.twikooEnvId || ''
+  form.site.githubUsername = store.config.site.githubUsername || ''
   form.asciiBanner = store.config.asciiBanner
 })
 </script>
