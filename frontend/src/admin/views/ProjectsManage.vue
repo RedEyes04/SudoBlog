@@ -35,9 +35,10 @@
             <n-upload
               :action="uploadUrl"
               :headers="uploadHeaders"
+              :on-finish="onImageUploaded"
               :show-file-list="false"
               accept="image/*"
-              @finish="onImageUploaded"
+              response-type="json"
             >
               <n-button size="small">上传图片</n-button>
             </n-upload>

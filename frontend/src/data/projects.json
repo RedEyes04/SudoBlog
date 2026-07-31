@@ -4,7 +4,11 @@
     "name": "SUDOBLOG",
     "description": "终端风格的博客系统",
     "tech": [
-      "Vue 59% TypeScript 37.7% CSS 1.6% Other 1.7%"
+      "Vue",
+      "TypeScript",
+      "JavaScript",
+      "Node.js",
+      "Express"
     ],
     "link": "https://github.com/RedEyes04/SudoBlog",
     "image": "",
